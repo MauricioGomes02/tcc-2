@@ -166,14 +166,14 @@ public class PersonController : ControllerBase
     [HttpGet("{id}/nearby-people")]
     public async Task<IActionResult> GetNearbyPeopleAsync(
         [FromRoute] long id,
-        [FromQuery] double radiusInKilometers,
+        [FromQuery] double radius,
         CancellationToken cancellationToken,
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 20)
     {
         var paginatedPeopleOutput = await _personService.GetNearbyPeopleAsync(
             id,
-            radiusInKilometers,
+            radius,
             pageIndex,
             pageSize,
             cancellationToken).ConfigureAwait(false);
