@@ -1,5 +1,5 @@
 ﻿namespace Tcc2.Domain.Entities.ValueObjects;
-public class Address
+public class Address : IEntity
 {
     public Address()
     {

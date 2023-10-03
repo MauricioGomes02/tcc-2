@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.WebUtilities;
 using Tcc2.Api.Interfaces.Services;
 using Tcc2.Api.Services.Models;
-using Tcc2.Application.Models;
+using Tcc2.Domain.Entities;
 using Tcc2.Domain.Pagination;
 
 namespace Tcc2.Api.Services;
@@ -17,7 +17,7 @@ public class HateoasGeneratorService : IHateoasGeneratorService
         _actionDescriptorCollectionProvider = actionDescriptorCollectionProvider;
     }
 
-    public string GenerateForGetOne<T>(T @object, IEnumerable<LinkInfo<T>> linkInfos) where T : class, IIdentity
+    public string GenerateForGetOne<T>(T @object, IEnumerable<LinkInfo<T>> linkInfos) where T : class, IEntity
     {
         var resource = GetResourceForOne(@object, linkInfos);
         return resource.ToString();
@@ -27,118 +27,13 @@ public class HateoasGeneratorService : IHateoasGeneratorService
         Paginated<T> @object,
         LinkInfo<T> self,
         string embeddedName,
-        IEnumerable<LinkInfo<T>> relatedItems) where T : class, IIdentity
+        IEnumerable<LinkInfo<T>> relatedItems) where T : class, IEntity
     {
         var resource = GetResourceForMany(@object, self, embeddedName, relatedItems);
         return resource.ToString();
     }
 
-    private LinkCollection GetPaginationLinkCollection(
-        Paginated<IIdentity> @object,
-        HttpRequest request)
-    {
-        var links = new LinkCollection();
-
-        //// Self link
-        //var path = request.Path;
-        //var queryString = request.QueryString;
-        //var self = GetLink("self", hrefs: path + queryString);
-        //links.Add(self);
-
-        //var totalPages = @object.TotalPages;
-        //var pageIndex = @object.PageIndex;
-        //var pageSize = @object.PageSize;
-
-        //// Previous and First link
-        //if (pageIndex > 0)
-        //{
-        //    var index = (pageIndex - 1);
-        //    var query = GetQueryString(index, pageSize);
-        //    var previous = GetLink("previous", hrefs: path + query);
-        //    links.Add(previous);
-
-        //    index = 0;
-        //    query = GetQueryString(index, pageSize);
-        //    var first = GetLink("first", hrefs: path + query);
-        //    links.Add(first);
-        //}
-
-        //// Next link
-        //if (pageIndex < (totalPages - 1))
-        //{
-        //    var index = (pageIndex + 1);
-        //    var query = GetQueryString(index, pageSize);
-        //    var next = GetLink("next", hrefs: path + query);
-        //    links.Add(next);
-
-        //    index = (totalPages - 1);
-        //    query = GetQueryString(index, pageSize);
-        //    var last = GetLink("last", hrefs: path + query);
-        //    links.Add(last);
-        //}
-
-        //var getOnePersonRoute = _actionDescriptorCollectionProvider
-        //    .ActionDescriptors
-        //    .Items
-        //    .First(x => x.DisplayName!.Contains(nameof(PersonController))
-        //        && x.AttributeRouteInfo!.Name == "GetOnePerson");
-
-        //var template = getOnePersonRoute.AttributeRouteInfo!.Template!;
-
-        //var find = GetLink("find", true, template.Replace("/{id}", "{?id}"));
-        //links.Add(find);
-
-        return links;
-    }
-
-    //private EmbeddedResourceCollection GetPaginationEmbeddedLink(
-    //    string name,
-    //    IReadOnlyCollection<Identity> @objects)
-    //{
-    //    var embeddedLink = new EmbeddedResourceCollection();
-    //    var resource = new EmbeddedResource()
-    //    {
-    //        Name = name,
-    //        Resources = GetPaginationResourceCollection(@objects)
-    //    };
-    //    embeddedLink.Add(resource);
-
-    //    return embeddedLink;
-    //}
-
-    //private ResourceCollection GetPaginationResourceCollection(IReadOnlyCollection<Identity> @objects)
-    //{
-    //    var resourceCollection = new ResourceCollection();
-    //    foreach (var @object in @objects)
-    //    {
-    //        var getOnePersonRoute = _actionDescriptorCollectionProvider
-    //        .ActionDescriptors
-    //        .Items
-    //        .First(x => x.DisplayName!.Contains(nameof(PersonController))
-    //            && x.AttributeRouteInfo!.Name == "GetOnePerson");
-
-    //        var template = getOnePersonRoute.AttributeRouteInfo!.Template!;
-    //        var links = new LinkCollection();
-    //        var self = GetLink("self", hrefs: template.Replace("{id}", @object.Id.ToString()));
-    //        links.Add(self);
-
-    //        var resource = new Resource()
-    //        {
-    //            State = @object,
-    //            Links = links
-    //        };
-    //        resourceCollection.Add(resource);
-    //    }
-
-    //    return resourceCollection;
-    //}
-
-    private static string GetPaginationQueryString(int pageIndex, int pageSize)
-    {
-        return $"pageIndex={pageIndex}&pageSize={pageSize}";
-    }
-
-    private Resource GetResourceForOne<T>(T @object, IEnumerable<LinkInfo<T>> linkInfos) where T : class, IIdentity
+    private Resource GetResourceForOne<T>(T @object, IEnumerable<LinkInfo<T>> linkInfos) where T : class, IEntity
     {
         var resource = new Resource
         {
@@ -156,7 +51,7 @@ public class HateoasGeneratorService : IHateoasGeneratorService
         };
     }
 
-    private LinkCollection GetLinksForOne<T>(T @object, IEnumerable<LinkInfo<T>> linkInfos) where T : class, IIdentity
+    private LinkCollection GetLinksForOne<T>(T @object, IEnumerable<LinkInfo<T>> linkInfos) where T : class, IEntity
     {
         var collection = new LinkCollection();
 
@@ -175,7 +70,7 @@ public class HateoasGeneratorService : IHateoasGeneratorService
         Paginated<T> @object,
         LinkInfo<T> self,
         string embeddedName,
-        IEnumerable<LinkInfo<T>> linkInfos) where T : class, IIdentity
+        IEnumerable<LinkInfo<T>> linkInfos) where T : class, IEntity
     {
         var resource = new Resource
         {
@@ -195,7 +90,7 @@ public class HateoasGeneratorService : IHateoasGeneratorService
         };
     }
 
-    private LinkCollection GetLinksForMany<T>(Paginated<T> @object, LinkInfo<T> linkInfo) where T : class, IIdentity
+    private LinkCollection GetLinksForMany<T>(Paginated<T> @object, LinkInfo<T> linkInfo) where T : class, IEntity
     {
         var collection = new LinkCollection();
 
@@ -258,7 +153,7 @@ public class HateoasGeneratorService : IHateoasGeneratorService
     private EmbeddedResourceCollection GetEmbeddedLinksForMany<T>(
         IReadOnlyCollection<T> objects,
         string embeddedName,
-        IEnumerable<LinkInfo<T>> linkInfos) where T : class, IIdentity
+        IEnumerable<LinkInfo<T>> linkInfos) where T : class, IEntity
     {
         var collection = new EmbeddedResourceCollection();
         var resources = new ResourceCollection();
@@ -279,7 +174,7 @@ public class HateoasGeneratorService : IHateoasGeneratorService
         return collection;
     }
 
-    private string GetHRefForOne<T>(T @object, LinkInfo<T> linkInfo) where T : class, IIdentity
+    private string GetHRefForOne<T>(T @object, LinkInfo<T> linkInfo) where T : class, IEntity
     {
         var getOneRoute = _actionDescriptorCollectionProvider
                .ActionDescriptors

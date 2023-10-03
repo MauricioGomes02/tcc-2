@@ -9,7 +9,7 @@ public interface IPersonService
     Task<Person> GetAsync(long id, CancellationToken cancellationToken);
     Task<Paginated<Person>> GetNearbyPeopleAsync(
         long id,
-        double radiusInKilometers,
+        double radius,
         int pageIndex,
         int pageSize,
         CancellationToken cancellationToken);

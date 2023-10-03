@@ -1,6 +1,8 @@
-﻿namespace Tcc2.Domain.Pagination;
+﻿using Tcc2.Domain.Entities;
 
-public class Paginated<T> where T : class
+namespace Tcc2.Domain.Pagination;
+
+public class Paginated<T> where T : IEntity
 {
     private readonly int _pageIndex;
     private readonly int _pageSize;

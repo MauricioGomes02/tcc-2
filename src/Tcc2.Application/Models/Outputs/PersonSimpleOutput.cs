@@ -1,7 +1,9 @@
-﻿namespace Tcc2.Application.Models.Outputs;
+﻿using Tcc2.Domain.Entities;
 
-public class PersonSimpleOutput : IIdentity
+namespace Tcc2.Application.Models.Outputs;
+
+public class PersonSimpleOutput : IEntity
 {
-    public long Id { get; set; }
+    public long? Id { get; set; }
     public string Name { get; set; }
 }

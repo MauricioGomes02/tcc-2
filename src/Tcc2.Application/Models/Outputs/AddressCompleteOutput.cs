@@ -1,8 +1,10 @@
-﻿namespace Tcc2.Application.Models.Outputs;
+﻿using Tcc2.Domain.Entities;
 
-public class AddressCompleteOutput : IIdentity
+namespace Tcc2.Application.Models.Outputs;
+
+public class AddressCompleteOutput : IEntity
 {
-    public long Id { get; set; }
+    public long? Id { get; set; }
     public string Country { get; set; }
     public string State { get; set; }
     public string City { get; set; }

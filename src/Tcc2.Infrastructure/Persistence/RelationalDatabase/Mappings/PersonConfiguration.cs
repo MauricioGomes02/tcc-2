@@ -18,5 +18,7 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
             .HasForeignKey<Address>(x => x.PersonId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(x => x.Address).AutoInclude();
     }
 }

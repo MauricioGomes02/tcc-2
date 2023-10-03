@@ -34,13 +34,13 @@ public class PersonController : ControllerBase
             nameof(PersonController),
             "GetOnePerson",
             "self",
-            getId: x => personOutput.Id);
+            getId: x => (long)personOutput.Id!);
 
         var addressLink = new LinkInfo<PersonCompleteOutput>(
             nameof(PersonController),
             "GetOneAddress",
             "address",
-            getId: x => personOutput.Id);
+            getId: x => (long)personOutput.Id!);
 
         var peopleLink = new LinkInfo<PersonCompleteOutput>(
             nameof(PersonController),
@@ -83,13 +83,13 @@ public class PersonController : ControllerBase
            nameof(PersonController),
            "GetOnePerson",
            "self",
-           getId: x => x.Id);
+           getId: x => (long)x.Id!);
 
         var _addressLink = new LinkInfo<PersonSimpleOutput>(
             nameof(PersonController),
             "GetOneAddress",
             "address",
-            getId: x => x.Id);
+            getId: x => (long)x.Id!);
 
         var linkInfos = new List<LinkInfo<PersonSimpleOutput>> { _selfLink, _addressLink };
 
@@ -189,13 +189,13 @@ public class PersonController : ControllerBase
            nameof(PersonController),
            "GetOnePerson",
            "self",
-           getId: x => x.Id);
+           getId: x => (long)x.Id!);
 
         var _addressLink = new LinkInfo<PersonSimpleOutput>(
             nameof(PersonController),
             "GetOneAddress",
             "address",
-            getId: x => x.Id);
+            getId: x => (long)x.Id!);
 
         var linkInfos = new List<LinkInfo<PersonSimpleOutput>> { _selfLink, _addressLink };
 

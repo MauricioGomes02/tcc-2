@@ -1,4 +1,5 @@
-﻿using Tcc2.Domain.Entities;
+﻿using System.Linq.Expressions;
+using Tcc2.Domain.Entities;
 using Tcc2.Domain.Entities.ValueObjects;
 using Tcc2.Domain.Interfaces.Infrastructure.Repositories;
 using Tcc2.Domain.Interfaces.Services;
@@ -17,7 +18,7 @@ public class GeographicProximityService : IGeographicProximityService
 
     public Task<Paginated<Person>> GetAsync(
         Address originAddress,
-        double radiusInKilometers,
+        double radius,
         int pageIndex,
         int pageSize,
         CancellationToken cancellationToken)
@@ -26,7 +27,7 @@ public class GeographicProximityService : IGeographicProximityService
         var originLongitude = originAddress.GeographicCoordinate!.Longitude;
 
         // Haversine Formula
-        return _personRepository.GetAsync(x => RadiusOfTheEarth * (2 * Math.Asin(
+        Expression<Func<Person, bool>> predicate = x => RadiusOfTheEarth * (2 * Math.Asin(
             Math.Sqrt(
                 Math.Pow(
                     Math.Sin(Math.PI / 180 * (x.Address.GeographicCoordinate!.Latitude - originLatitude) / 2),
@@ -37,9 +38,14 @@ public class GeographicProximityService : IGeographicProximityService
                 Math.Cos(Math.PI / 180 * originLatitude) *
                 Math.Cos(Math.PI / 180 * x.Address.GeographicCoordinate!.Latitude)
             )))
-            <= radiusInKilometers && x.Id != originAddress.PersonId,
+            <= radius && x.Id != originAddress.PersonId;
+
+        var criteria = new Criteria<Person, Person>(
+            predicate,
+            x => x,
             pageIndex,
-            pageSize,
-            cancellationToken);
+            pageSize);
+
+        return _personRepository.GetAsync(criteria, cancellationToken);
     }
 }

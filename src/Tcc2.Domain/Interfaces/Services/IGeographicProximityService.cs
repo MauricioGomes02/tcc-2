@@ -7,7 +7,7 @@ public interface IGeographicProximityService
 {
     public Task<Paginated<Person>> GetAsync(
         Address originAddress,
-        double radiusInKilometers,
+        double radius,
         int pageIndex,
         int pageSize,
         CancellationToken cancellationToken);

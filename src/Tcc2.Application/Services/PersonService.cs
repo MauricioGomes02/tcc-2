@@ -71,7 +71,7 @@ public class PersonService : IPersonService
 
     public async Task<Paginated<PersonSimpleOutput>> GetNearbyPeopleAsync(
         long id,
-        double radiusInKilometers,
+        double radius,
         int pageIndex,
         int pageSize,
         CancellationToken cancellationToken)
@@ -86,14 +86,14 @@ public class PersonService : IPersonService
             throw new ArgumentException($"The {nameof(pageSize)} argument cannot be less than or equal to zero");
         }
 
-        if (radiusInKilometers <= 0)
+        if (radius <= 0)
         {
             throw new ArgumentException(
-                $"The {nameof(radiusInKilometers)} argument cannot be less than or equal to zero");
+                $"The {nameof(radius)} argument cannot be less than or equal to zero");
         }
 
         var storedPaginatedDomainPeople = await _personService
-            .GetNearbyPeopleAsync(id, radiusInKilometers, pageIndex, pageSize, cancellationToken)
+            .GetNearbyPeopleAsync(id, radius, pageIndex, pageSize, cancellationToken)
             .ConfigureAwait(false);
 
         var peopleOutput = storedPaginatedDomainPeople.Items.Select(SimpleConvert);

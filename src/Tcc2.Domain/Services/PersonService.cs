@@ -1,5 +1,4 @@
 ﻿using Tcc2.Domain.Entities;
-using Tcc2.Domain.Entities.ValueObjects;
 using Tcc2.Domain.Exceptions;
 using Tcc2.Domain.Interfaces.Infrastructure.Repositories;
 using Tcc2.Domain.Interfaces.Infrastructure.Services;
@@ -30,7 +29,7 @@ public class PersonService : IPersonService
             .GetAsync(person.Address, cancellationToken)
             .ConfigureAwait(false);
 
-        if (geographicCoordinate is null) 
+        if (geographicCoordinate is null)
         {
             throw new ValueObjectNotFoundException(
                 "Unable to obtain the geographic coordinates of the address provided");
@@ -38,12 +37,20 @@ public class PersonService : IPersonService
 
         person.Address.AddGeographicCoordinate(geographicCoordinate);
 
-        return await _repository.AddAsync(person, cancellationToken).ConfigureAwait(false);
+        var soredPerson = await _repository.AddAsync(person, cancellationToken).ConfigureAwait(false);
+        await _repository.SaveAsync(cancellationToken).ConfigureAwait(false);
+        return soredPerson;
     }
 
     public Task<Paginated<Person>> GetAsync(int pageIndex, int pageSize, CancellationToken cancellationToken)
     {
-        return _repository.GetAsync(cancellationToken, pageIndex, pageSize);
+        var criteria = new Criteria<Person, Person>(
+            x => true,
+            x => x,
+            pageIndex,
+            pageSize);
+
+        return _repository.GetAsync(criteria, cancellationToken);
     }
 
     public async Task<Person> GetAsync(long id, CancellationToken cancellationToken)
@@ -60,7 +67,7 @@ public class PersonService : IPersonService
 
     public async Task<Paginated<Person>> GetNearbyPeopleAsync(
         long id,
-        double radiusInKilometers,
+        double radius,
         int pageIndex,
         int pageSize,
         CancellationToken cancellationToken)
@@ -69,7 +76,7 @@ public class PersonService : IPersonService
         var address = person.Address;
 
         var nearbyPeople = await _geographicProximityService
-            .GetAsync(address, radiusInKilometers, pageIndex, pageSize, cancellationToken)
+            .GetAsync(address, radius, pageIndex, pageSize, cancellationToken)
             .ConfigureAwait(false);
 
         return nearbyPeople;
