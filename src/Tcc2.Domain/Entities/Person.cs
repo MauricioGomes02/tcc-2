@@ -13,13 +13,13 @@ public class Person : IAggregateRoot
     {
         Name = name;
         Address = address;
-        Activities = activities;
+        Activities = activities ?? new List<Activity>();
         Id = id;
     }
 
     public string Name { get; private set; }
     public Address Address { get; private set; }
-    public ICollection<Activity>? Activities { get; private set; }
+    public ICollection<Activity> Activities { get; private set; }
     public long? Id { get; private set; }
 
     public void UpdateAddress(Address address)
