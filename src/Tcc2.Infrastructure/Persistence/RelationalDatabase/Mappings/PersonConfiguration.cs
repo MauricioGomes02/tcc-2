@@ -19,6 +19,14 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder
+            .HasMany(x => x.Activities)
+            .WithOne(x => x.Person)
+            .HasForeignKey(x => x.PersonId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Navigation(x => x.Address).AutoInclude();
+        builder.Navigation(x => x.Activities).AutoInclude();
     }
 }

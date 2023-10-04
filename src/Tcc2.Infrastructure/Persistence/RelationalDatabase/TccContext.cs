@@ -24,4 +24,5 @@ public class TccContext : DbContext
 
     public DbSet<Person> People { get; set; }
     public DbSet<Address> Addresses { get; set; }
+    public DbSet<Activity> Activities { get; set; }
 }
