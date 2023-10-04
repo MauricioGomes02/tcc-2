@@ -11,8 +11,8 @@ using Tcc2.Infrastructure.Persistence.RelationalDatabase;
 namespace Tcc2.Infrastructure.Migrations
 {
     [DbContext(typeof(TccContext))]
-    [Migration("20230921192946_Initial")]
-    partial class Initial
+    [Migration("20231003235152_Tcc")]
+    partial class Tcc
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -22,7 +22,57 @@ namespace Tcc2.Infrastructure.Migrations
                 .HasAnnotation("ProductVersion", "7.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("Tcc2.Domain.Entities.Address", b =>
+            modelBuilder.Entity("Tcc2.Domain.Entities.Activity", b =>
+                {
+                    b.Property<long?>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AddressId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<TimeSpan>("End")
+                        .HasColumnType("time(6)");
+
+                    b.Property<long?>("PersonId")
+                        .IsRequired()
+                        .HasColumnType("bigint");
+
+                    b.Property<TimeSpan>("Start")
+                        .HasColumnType("time(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddressId");
+
+                    b.HasIndex("PersonId");
+
+                    b.ToTable("Activity");
+                });
+
+            modelBuilder.Entity("Tcc2.Domain.Entities.Person", b =>
+                {
+                    b.Property<long?>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("People");
+                });
+
+            modelBuilder.Entity("Tcc2.Domain.Entities.ValueObjects.Address", b =>
                 {
                     b.Property<long?>("Id")
                         .ValueGeneratedOnAdd()
@@ -66,30 +116,34 @@ namespace Tcc2.Infrastructure.Migrations
                     b.ToTable("Addresses");
                 });
 
-            modelBuilder.Entity("Tcc2.Domain.Entities.Person", b =>
+            modelBuilder.Entity("Tcc2.Domain.Entities.Activity", b =>
                 {
-                    b.Property<long?>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("People");
-                });
-
-            modelBuilder.Entity("Tcc2.Domain.Entities.Address", b =>
-                {
-                    b.HasOne("Tcc2.Domain.Entities.Person", "Person")
-                        .WithOne("Address")
-                        .HasForeignKey("Tcc2.Domain.Entities.Address", "PersonId")
+                    b.HasOne("Tcc2.Domain.Entities.ValueObjects.Address", "Address")
+                        .WithMany()
+                        .HasForeignKey("AddressId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("Tcc2.Domain.Entities.GeographicCoordinate", "GeographicCoordinate", b1 =>
+                    b.HasOne("Tcc2.Domain.Entities.Person", "Person")
+                        .WithMany("Activities")
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Address");
+
+                    b.Navigation("Person");
+                });
+
+            modelBuilder.Entity("Tcc2.Domain.Entities.ValueObjects.Address", b =>
+                {
+                    b.HasOne("Tcc2.Domain.Entities.Person", "Person")
+                        .WithOne("Address")
+                        .HasForeignKey("Tcc2.Domain.Entities.ValueObjects.Address", "PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("Tcc2.Domain.Entities.ValueObjects.GeographicCoordinate", "GeographicCoordinate", b1 =>
                         {
                             b1.Property<long>("AddressId")
                                 .HasColumnType("bigint");
@@ -115,6 +169,8 @@ namespace Tcc2.Infrastructure.Migrations
 
             modelBuilder.Entity("Tcc2.Domain.Entities.Person", b =>
                 {
+                    b.Navigation("Activities");
+
                     b.Navigation("Address")
                         .IsRequired();
                 });
