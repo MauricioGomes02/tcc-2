@@ -20,14 +20,23 @@ public abstract class Repository<TAggregateRoot> : IRepository<TAggregateRoot> w
         return entryEntity.Entity;
     }
 
-    public Task<TAggregateRoot> GetAsync(long id, CancellationToken cancellationToken)
+    public async Task<IReadOnlyCollection<TResult>> GetAsync<TResult>(
+        Criteria<TAggregateRoot, TResult> criteria,
+        CancellationToken cancellationToken)
     {
-        return _context.Set<TAggregateRoot>().SingleAsync(x => x.Id == id, cancellationToken);
+        var entities = await _context
+            .Set<TAggregateRoot>()
+            .Where(criteria.Predicate)
+            .Select(criteria.Projection)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return entities;
     }
 
-    public async Task<Paginated<TResult>> GetAsync<TResult>(
+    public async Task<Paginated<TResult>> GetPaginatedAsync<TResult>(
         Criteria<TAggregateRoot, TResult> criteria,
-        CancellationToken cancellationToken) where TResult : IEntity
+        CancellationToken cancellationToken)
     {
         if (criteria.PageIndex is null)
         {
@@ -54,7 +63,16 @@ public abstract class Repository<TAggregateRoot> : IRepository<TAggregateRoot> w
             .Select(criteria.Projection)
             .ToListAsync(cancellationToken).ConfigureAwait(false);
 
-        return new Paginated<TResult>(pageIndex, pageSize, totalItems, entities);
+        return new Paginated<TResult>(pageIndex, pageSize, entities, totalItems: totalItems);
+    }
+
+    public async Task<TAggregateRoot> UpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancellationToken)
+    {
+        var entityEntry = await Task.Run(
+            () => _context.Set<TAggregateRoot>().Update(aggregateRoot),
+            cancellationToken).ConfigureAwait(false);
+
+        return entityEntry.Entity;
     }
 
     public async Task SaveAsync(CancellationToken cancellationToken)

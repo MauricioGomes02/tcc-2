@@ -60,12 +60,12 @@ public class AddressValidationService : IAddressValidationService
                 "Cannot be null or less than or equal to zero");
         }
 
-        if (address.PostalCode is not null && address.PostalCode.Trim() == string.Empty)
+        if (string.IsNullOrWhiteSpace(address.PostalCode))
         {
             validationResult.Add(
-                nameof(address.State),
+                nameof(address.PostalCode),
                 modelName,
-                "Cannot be empty");
+                "Cannot be empty or null");
         }
 
         return validationResult;

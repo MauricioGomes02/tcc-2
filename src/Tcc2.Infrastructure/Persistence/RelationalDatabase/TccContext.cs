@@ -23,6 +23,8 @@ public class TccContext : DbContext
     }
 
     public DbSet<Person> People { get; set; }
-    public DbSet<Address> Addresses { get; set; }
+    public DbSet<CompositeAddress> Addresses { get; set; }
     public DbSet<Activity> Activities { get; set; }
+    public DbSet<Day> Days { get; set; }
+    public DbSet<ActivityDay> ActivityDay { get; set; }
 }

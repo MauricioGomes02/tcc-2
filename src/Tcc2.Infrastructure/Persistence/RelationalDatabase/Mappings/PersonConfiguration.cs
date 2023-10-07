@@ -15,7 +15,7 @@ public class PersonConfiguration : IEntityTypeConfiguration<Person>
         builder
             .HasOne(x => x.Address)
             .WithOne(x => x.Person)
-            .HasForeignKey<Address>(x => x.PersonId)
+            .HasForeignKey<CompositeAddress>(x => x.PersonId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 

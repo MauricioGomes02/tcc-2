@@ -4,4 +4,5 @@ namespace Tcc2.Domain.Interfaces.Infrastructure.Repositories;
 
 public interface IPersonRepository : IRepository<Person>
 {
+    Task<IReadOnlyCollection<Day>> GetDaysAsync(CancellationToken cancellationToken);
 }

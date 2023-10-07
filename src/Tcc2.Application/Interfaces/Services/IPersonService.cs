@@ -10,9 +10,15 @@ public interface IPersonService
     Task<Paginated<PersonSimpleOutput>> GetAsync(int pageIndex, int pageSize, CancellationToken cancellationToken);
     Task<PersonCompleteOutput> GetAsync(long id, CancellationToken cancellationToken);
     Task<AddressCompleteOutput> GetAddressAsync(long id, CancellationToken cancellationToken);
+    Task<ActivityCompleteOutput> AddActivityAsync(
+        long id,
+        ActivityInput? activityInput,
+        CancellationToken cancellationToken);
+    Task<IReadOnlyCollection<ActivitySimpleOutput>> GetActivitiesAsync(long id, CancellationToken cancellationToken);
+    Task<ActivityCompleteOutput> GetActivityAsync(long id, long activityId, CancellationToken cancellationToken);
     Task<Paginated<PersonSimpleOutput>> GetNearbyPeopleAsync(
         long id,
-        double radiusInKilometers,
+        double radius,
         int pageIndex,
         int pageSize,
         CancellationToken cancellationToken);

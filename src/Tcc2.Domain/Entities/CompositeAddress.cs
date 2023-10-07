@@ -1,44 +1,30 @@
 ﻿namespace Tcc2.Domain.Entities.ValueObjects;
-public class Address : IEntity
+public class CompositeAddress : Address, IEntity
 {
-    public Address()
+    public CompositeAddress()
     {
 
     }
 
-    public Address(
+    public CompositeAddress(
         string country,
         string state,
         string city,
         string neighborhood,
         string street,
         int number,
-        string? postalCode = null,
+        string postalCode,
         GeographicCoordinate? geographicCoordinate = null,
         long? personId = null,
         Person? person = null,
-        long? id = null)
+        long? id = null) : base(country, state, city, neighborhood, street, number, postalCode)
     {
-        Country = country;
-        State = state;
-        City = city;
-        Neighborhood = neighborhood;
-        Street = street;
-        Number = number;
-        PostalCode = postalCode;
         GeographicCoordinate = geographicCoordinate;
         PersonId = personId;
         Person = person;
         Id = id;
     }
 
-    public string Country { get; private set; }
-    public string State { get; private set; }
-    public string City { get; private set; }
-    public string Neighborhood { get; private set; }
-    public string Street { get; private set; }
-    public int Number { get; private set; }
-    public string? PostalCode { get; private set; }
     public GeographicCoordinate? GeographicCoordinate { get; private set; }
     public long? PersonId { get; private set; }
     public long? Id { get; private set; }

@@ -11,6 +11,7 @@ public static class ApplicationConfigurationExtensions
         return services
             .AddTransient<IPersonService, PersonService>()
             .AddTransient<IPersonValidationService, PersonValidationService>()
-            .AddTransient<IAddressValidationService, AddressValidationService>();
+            .AddTransient<IAddressValidationService, AddressValidationService>()
+            .AddTransient<IActivityValidationService, ActivityValidationService>();
     }
 }

@@ -9,7 +9,7 @@ public class Person : IAggregateRoot
 
     }
 
-    public Person(string name, Address address, ICollection<Activity>? activities = null, long? id = null)
+    public Person(string name, CompositeAddress address, ICollection<Activity>? activities = null, long? id = null)
     {
         Name = name;
         Address = address;
@@ -18,11 +18,11 @@ public class Person : IAggregateRoot
     }
 
     public string Name { get; private set; }
-    public Address Address { get; private set; }
+    public CompositeAddress Address { get; private set; }
     public ICollection<Activity> Activities { get; private set; }
     public long? Id { get; private set; }
 
-    public void UpdateAddress(Address address)
+    public void UpdateAddress(CompositeAddress address)
     {
         ArgumentNullException.ThrowIfNull(address);
         Address = address;

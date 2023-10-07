@@ -17,7 +17,7 @@ public class GeographicProximityService : IGeographicProximityService
     }
 
     public Task<Paginated<Person>> GetAsync(
-        Address originAddress,
+        CompositeAddress originAddress,
         double radius,
         int pageIndex,
         int pageSize,
@@ -46,6 +46,6 @@ public class GeographicProximityService : IGeographicProximityService
             pageIndex,
             pageSize);
 
-        return _personRepository.GetAsync(criteria, cancellationToken);
+        return _personRepository.GetPaginatedAsync(criteria, cancellationToken);
     }
 }

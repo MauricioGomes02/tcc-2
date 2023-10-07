@@ -1,6 +1,7 @@
 ﻿using Hal;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.WebUtilities;
+using System.Text.RegularExpressions;
 using Tcc2.Api.Interfaces.Services;
 using Tcc2.Api.Services.Models;
 using Tcc2.Domain.Entities;
@@ -25,6 +26,16 @@ public class HateoasGeneratorService : IHateoasGeneratorService
 
     public string GenerateForGetMany<T>(
         Paginated<T> @object,
+        LinkInfo<T> self,
+        string embeddedName,
+        IEnumerable<LinkInfo<T>> relatedItems) where T : class, IEntity
+    {
+        var resource = GetResourceForMany(@object, self, embeddedName, relatedItems);
+        return resource.ToString();
+    }
+
+    public string GenerateForGetMany<T>(
+        IReadOnlyCollection<T> @object,
         LinkInfo<T> self,
         string embeddedName,
         IEnumerable<LinkInfo<T>> relatedItems) where T : class, IEntity
@@ -79,6 +90,30 @@ public class HateoasGeneratorService : IHateoasGeneratorService
 
         var links = GetLinksForMany(@object, self);
         var embeddedLinks = GetEmbeddedLinksForMany(@object.Items, embeddedName, linkInfos);
+
+        resource.Links = links;
+
+        return new Resource
+        {
+            State = default,
+            Links = links,
+            EmbeddedResources = embeddedLinks
+        };
+    }
+
+    private Resource GetResourceForMany<T>(
+        IReadOnlyCollection<T> @object,
+        LinkInfo<T> self,
+        string embeddedName,
+        IEnumerable<LinkInfo<T>> linkInfos) where T : class, IEntity
+    {
+        var resource = new Resource
+        {
+            State = default,
+        };
+
+        var links = GetLinksForMany(self);
+        var embeddedLinks = GetEmbeddedLinksForMany(@object, embeddedName, linkInfos);
 
         resource.Links = links;
 
@@ -150,6 +185,35 @@ public class HateoasGeneratorService : IHateoasGeneratorService
         return collection;
     }
 
+    private LinkCollection GetLinksForMany<T>(LinkInfo<T> linkInfo) where T : class, IEntity
+    {
+        var getManyRoute = _actionDescriptorCollectionProvider
+               .ActionDescriptors
+               .Items
+               .First(x => x.DisplayName!.Contains(linkInfo.ControllerName)
+                   && x.AttributeRouteInfo!.Name == linkInfo.RouteName);
+
+        var template = getManyRoute.AttributeRouteInfo!.Template!;
+
+        var matches = Regex.Matches(template, @"\{.*?\}");
+        var href = "/" + template;
+        foreach (var match in matches)
+        {
+            var templateId = match.ToString()!;
+            href = href.Replace(templateId, linkInfo.GetId(default!, templateId).ToString());
+        }
+
+        var collection = new LinkCollection();
+        
+        var selfLink = GetLink("self", href);
+        var findLink = GetLink("find", $"{href}/{{?id}}", true);
+
+        collection.Add(selfLink);
+        collection.Add(findLink);
+
+        return collection;
+    }
+
     private EmbeddedResourceCollection GetEmbeddedLinksForMany<T>(
         IReadOnlyCollection<T> objects,
         string embeddedName,
@@ -183,7 +247,15 @@ public class HateoasGeneratorService : IHateoasGeneratorService
                    && x.AttributeRouteInfo!.Name == linkInfo.RouteName);
 
         var template = getOneRoute.AttributeRouteInfo!.Template!;
-        var href = "/" + template.Replace("{id}", linkInfo.GetId(@object)!.ToString());
+
+        var matches = Regex.Matches(template, @"\{.*?\}");
+        var href = "/" + template;
+        foreach (var match in matches)
+        {
+            var templateId = match.ToString()!;
+            href = href.Replace(templateId, linkInfo.GetId(@object, templateId).ToString());
+        }
+
         return href;
     }
 

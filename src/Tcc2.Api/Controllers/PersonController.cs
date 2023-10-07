@@ -30,28 +30,37 @@ public class PersonController : ControllerBase
     {
         var personOutput = await _personService.AddAsync(personInput, cancellationToken).ConfigureAwait(false);
 
+        var getIds = new Dictionary<string, Func<PersonCompleteOutput, long>>
+        {
+            { "{id}", x => (long)x.Id! }
+        };
+
         var selfLink = new LinkInfo<PersonCompleteOutput>(
             nameof(PersonController),
             "GetOnePerson",
             "self",
-            getId: x => (long)personOutput.Id!);
+            getIds: getIds);
 
         var addressLink = new LinkInfo<PersonCompleteOutput>(
             nameof(PersonController),
             "GetOneAddress",
             "address",
-            getId: x => (long)personOutput.Id!);
+            getIds: getIds);
 
         var peopleLink = new LinkInfo<PersonCompleteOutput>(
             nameof(PersonController),
             "GetPeople",
             "people");
 
-        var linkInfos = new List<LinkInfo<PersonCompleteOutput>> { selfLink, addressLink, peopleLink };
+        var activitiesLink = new LinkInfo<PersonCompleteOutput>(
+           nameof(PersonController),
+           "GetActivities",
+           "self",
+           getIds: getIds);
 
-        var json = _hateoasGeneratorService.GenerateForGetOne(
-            personOutput,
-            linkInfos);
+        var linkInfos = new List<LinkInfo<PersonCompleteOutput>> { selfLink, addressLink, peopleLink, activitiesLink };
+
+        var json = _hateoasGeneratorService.GenerateForGetOne(personOutput, linkInfos);
 
         var routeValues = new { id = personOutput.Id };
         return CreatedAtRoute("GetOnePerson", routeValues, json);
@@ -72,6 +81,11 @@ public class PersonController : ControllerBase
             .GetAsync(pageIndex, pageSize, cancellationToken)
             .ConfigureAwait(false);
 
+        var getIds = new Dictionary<string, Func<PersonSimpleOutput, long>>
+        {
+            { "{id}", x => (long)x.Id! }
+        };
+
         var queryString = Request.Query.ToDictionary(x => x.Key, x => x.Value);
         var selfLink = new LinkInfo<PersonSimpleOutput>(
             nameof(PersonController),
@@ -83,15 +97,21 @@ public class PersonController : ControllerBase
            nameof(PersonController),
            "GetOnePerson",
            "self",
-           getId: x => (long)x.Id!);
+           getIds: getIds);
 
         var _addressLink = new LinkInfo<PersonSimpleOutput>(
             nameof(PersonController),
             "GetOneAddress",
             "address",
-            getId: x => (long)x.Id!);
+            getIds: getIds);
 
-        var linkInfos = new List<LinkInfo<PersonSimpleOutput>> { _selfLink, _addressLink };
+        var activitiesLink = new LinkInfo<PersonSimpleOutput>(
+            nameof(PersonController),
+            "GetActivities",
+            "self",
+            getIds: getIds);
+
+        var linkInfos = new List<LinkInfo<PersonSimpleOutput>> { _selfLink, _addressLink, activitiesLink };
 
         var json = _hateoasGeneratorService.GenerateForGetMany(paginatedPeopleOutput, selfLink, "people", linkInfos);
         return Ok(json);
@@ -107,24 +127,42 @@ public class PersonController : ControllerBase
     {
         var personOutput = await _personService.GetAsync(id, cancellationToken).ConfigureAwait(false);
 
+        var getIds = new Dictionary<string, Func<PersonCompleteOutput, long>>
+        {
+            { "{id}", x => (long)x.Id! },
+            { "{activityId}", x => (long)x.Id! }
+        };
+
         var selfLink = new LinkInfo<PersonCompleteOutput>(
             nameof(PersonController),
             "GetOnePerson",
             "self",
-            getId: x => id);
+            getIds: getIds);
 
         var personLink = new LinkInfo<PersonCompleteOutput>(
             nameof(PersonController),
             "GetOneAddress",
             "address",
-            getId: x => id);
+            getIds: getIds);
 
         var peopleLink = new LinkInfo<PersonCompleteOutput>(
             nameof(PersonController),
             "GetPeople",
             "people");
 
-        var linkInfos = new List<LinkInfo<PersonCompleteOutput>> { selfLink, personLink, peopleLink };
+        var activitiesLink = new LinkInfo<PersonCompleteOutput>(
+            nameof(PersonController),
+            "GetActivities",
+            "activities",
+            getIds: getIds);
+
+        var linkInfos = new List<LinkInfo<PersonCompleteOutput>>
+        {
+            selfLink,
+            personLink,
+            peopleLink,
+            activitiesLink
+        };
 
         var json = _hateoasGeneratorService.GenerateForGetOne(personOutput, linkInfos);
         return Ok(json);
@@ -140,17 +178,22 @@ public class PersonController : ControllerBase
     {
         var personOutput = await _personService.GetAddressAsync(id, cancellationToken).ConfigureAwait(false);
 
+        var getIds = new Dictionary<string, Func<AddressCompleteOutput, long>>
+        {
+            { "{id}", x => id }
+        };
+
         var selfLink = new LinkInfo<AddressCompleteOutput>(
             nameof(PersonController),
             "GetOneAddress",
             "self",
-            getId: x => id);
+            getIds: getIds);
 
         var personLink = new LinkInfo<AddressCompleteOutput>(
             nameof(PersonController),
             "GetOnePerson",
             "person",
-            getId: x => id);
+            getIds: getIds);
 
         var peopleLink = new LinkInfo<AddressCompleteOutput>(
             nameof(PersonController),
@@ -163,7 +206,11 @@ public class PersonController : ControllerBase
         return Ok(json);
     }
 
-    [HttpGet("{id}/nearby-people")]
+    [HttpGet("{id}/address/nearby-people")]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetNearbyPeopleAsync(
         [FromRoute] long id,
         [FromQuery] double radius,
@@ -178,6 +225,11 @@ public class PersonController : ControllerBase
             pageSize,
             cancellationToken).ConfigureAwait(false);
 
+        var getIds = new Dictionary<string, Func<PersonSimpleOutput, long>>
+        {
+            { "{id}", x => (long)x.Id! }
+        };
+
         var queryString = Request.Query.ToDictionary(x => x.Key, x => x.Value);
         var selfLink = new LinkInfo<PersonSimpleOutput>(
             nameof(PersonController),
@@ -185,21 +237,171 @@ public class PersonController : ControllerBase
             "self",
             queryString);
 
-        var _selfLink = new LinkInfo<PersonSimpleOutput>(
+        var _selfPersonLink = new LinkInfo<PersonSimpleOutput>(
            nameof(PersonController),
            "GetOnePerson",
            "self",
-           getId: x => (long)x.Id!);
+           getIds: getIds);
 
-        var _addressLink = new LinkInfo<PersonSimpleOutput>(
-            nameof(PersonController),
-            "GetOneAddress",
-            "address",
-            getId: x => (long)x.Id!);
-
-        var linkInfos = new List<LinkInfo<PersonSimpleOutput>> { _selfLink, _addressLink };
+        var linkInfos = new List<LinkInfo<PersonSimpleOutput>> { _selfPersonLink };
 
         var json = _hateoasGeneratorService.GenerateForGetMany(paginatedPeopleOutput, selfLink, "people", linkInfos);
+        return Ok(json);
+    }
+
+    [HttpPost("{id}/activities")]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AddActivityAsync(
+        [FromRoute] long id,
+        [FromBody] ActivityInput? activityInput,
+        CancellationToken cancellationToken)
+    {
+        var activityOutput = await _personService
+            .AddActivityAsync(id, activityInput, cancellationToken)
+            .ConfigureAwait(false);
+
+        var getIds = new Dictionary<string, Func<ActivityCompleteOutput, long>>
+        {
+            { "{id}", x => id },
+            { "{activityId}", x => (long)x.Id! }
+        };
+
+        var selfLink = new LinkInfo<ActivityCompleteOutput>(
+            nameof(PersonController),
+            "GetOneActivity",
+            "self",
+            getIds: getIds);
+
+        var activitiesLink = new LinkInfo<ActivityCompleteOutput>(
+            nameof(PersonController),
+            "GetActivities",
+            "activities",
+            getIds: getIds);
+
+        var peopleLink = new LinkInfo<ActivityCompleteOutput>(
+            nameof(PersonController),
+            "GetPeople",
+            "people");
+
+        var selfPersonLink = new LinkInfo<ActivityCompleteOutput>(
+            nameof(PersonController),
+            "GetOnePerson",
+            "person",
+            getIds: getIds);
+
+        var linkInfos = new List<LinkInfo<ActivityCompleteOutput>>
+        {
+            selfLink,
+            activitiesLink,
+            peopleLink,
+            selfPersonLink
+        };
+
+        var json = _hateoasGeneratorService.GenerateForGetOne(activityOutput, linkInfos);
+
+        var routeValues = new { id, activityId = activityOutput.Id };
+        return CreatedAtRoute("GetOneActivity", routeValues, json);
+    }
+
+    [HttpGet("{id}/activities", Name = "GetActivities")]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetActivitiesAsync(
+        [FromRoute] long id,
+        CancellationToken cancellationToken)
+    {
+        var activitiesOutput = await _personService
+            .GetActivitiesAsync(id, cancellationToken)
+            .ConfigureAwait(false);
+
+        var getIds = new Dictionary<string, Func<ActivitySimpleOutput, long>>
+        {
+            { "{id}", x => id },
+            { "{activityId}", x => (long)x.Id! }
+        };
+
+        var selfLink = new LinkInfo<ActivitySimpleOutput>(
+            nameof(PersonController),
+            "GetActivities",
+            "self",
+            getIds: getIds);
+
+        var selfActivityLink = new LinkInfo<ActivitySimpleOutput>(
+            nameof(PersonController),
+            "GetOneActivity",
+            "self",
+            getIds: getIds);
+
+        var peopleLink = new LinkInfo<ActivitySimpleOutput>(
+           nameof(PersonController),
+           "GetPeople",
+           "people",
+           getIds: getIds);
+
+        var linkInfos = new List<LinkInfo<ActivitySimpleOutput>> { selfActivityLink, peopleLink };
+
+        var json = _hateoasGeneratorService.GenerateForGetMany(activitiesOutput, selfLink, "activities", linkInfos);
+        return Ok(json);
+    }
+
+    [HttpGet("{id}/activities/{activityId}", Name = "GetOneActivity")]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetActivityAsync(
+        [FromRoute] long id,
+        [FromRoute] long activityId,
+        CancellationToken cancellationToken)
+    {
+        var activitiesOutput = await _personService
+            .GetActivityAsync(id, activityId, cancellationToken)
+            .ConfigureAwait(false);
+
+        var getIds = new Dictionary<string, Func<ActivitySimpleOutput, long>>
+        {
+            { "{id}", x => id },
+            { "{activityId}", x => (long)x.Id! }
+        };
+
+        var selfActivityLink = new LinkInfo<ActivitySimpleOutput>(
+            nameof(PersonController),
+            "GetOneActivity",
+            "self",
+            getIds: getIds);
+
+        var activitiesLink = new LinkInfo<ActivitySimpleOutput>(
+            nameof(PersonController),
+            "GetActivities",
+            "activities",
+            getIds: getIds);
+
+        var peopleLink = new LinkInfo<ActivitySimpleOutput>(
+           nameof(PersonController),
+           "GetPeople",
+           "people",
+           getIds: getIds);
+
+        var selfPersonLink = new LinkInfo<ActivitySimpleOutput>(
+            nameof(PersonController),
+            "GetOnePerson",
+            "person",
+            getIds: getIds);
+
+        var linkInfos = new List<LinkInfo<ActivitySimpleOutput>> 
+        { 
+            selfActivityLink, 
+            activitiesLink, 
+            peopleLink, 
+            selfPersonLink 
+        };
+
+        var json = _hateoasGeneratorService.GenerateForGetOne(activitiesOutput, linkInfos);
         return Ok(json);
     }
 }

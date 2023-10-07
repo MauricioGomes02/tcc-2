@@ -12,4 +12,9 @@ public interface IHateoasGeneratorService
         LinkInfo<T> self,
         string embeddedName,
         IEnumerable<LinkInfo<T>> relatedItems) where T : class, IEntity;
+    string GenerateForGetMany<T>(
+        IReadOnlyCollection<T> @object,
+        LinkInfo<T> self,
+        string embeddedName,
+        IEnumerable<LinkInfo<T>> relatedItems) where T : class, IEntity;
 }

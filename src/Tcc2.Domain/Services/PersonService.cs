@@ -1,4 +1,5 @@
 ﻿using Tcc2.Domain.Entities;
+using Tcc2.Domain.Entities.ValueObjects;
 using Tcc2.Domain.Exceptions;
 using Tcc2.Domain.Interfaces.Infrastructure.Repositories;
 using Tcc2.Domain.Interfaces.Infrastructure.Services;
@@ -50,12 +51,16 @@ public class PersonService : IPersonService
             pageIndex,
             pageSize);
 
-        return _repository.GetAsync(criteria, cancellationToken);
+        return _repository.GetPaginatedAsync(criteria, cancellationToken);
     }
 
     public async Task<Person> GetAsync(long id, CancellationToken cancellationToken)
     {
-        var person = await _repository.GetAsync(id, cancellationToken).ConfigureAwait(false);
+        var criteria = new Criteria<Person, Person>(x => x.Id == id, x => x);
+
+        var person = (await _repository
+            .GetAsync(criteria, cancellationToken)
+            .ConfigureAwait(false)).SingleOrDefault();
 
         if (person is null)
         {
@@ -65,6 +70,56 @@ public class PersonService : IPersonService
         return person;
     }
 
+    public async Task<CompositeAddress> GetAddressAsync(long id, CancellationToken cancellationToken)
+    {
+        var criteria = new Criteria<Person, CompositeAddress>(
+            x => x.Id == id,
+            x => x.Address);
+
+        var address = (await _repository
+            .GetAsync(criteria, cancellationToken)
+            .ConfigureAwait(false)).SingleOrDefault();
+
+        if (address is null)
+        {
+            throw new EntityNotFoundException($"No person entity found for id {id}");
+        }
+
+        return address;
+    }
+
+    public async Task<Activity> AddActivityAsync(long id, Activity activity, CancellationToken cancellationToken)
+    {
+        var storedDomainPerson = await GetAsync(id, cancellationToken).ConfigureAwait(false);
+        var days = (await _repository
+            .GetDaysAsync(cancellationToken)
+            .ConfigureAwait(false)).ToDictionary(x => x.Id);
+
+        foreach (var activityDay in activity.ActivityDay)
+        {
+            var day = days[activityDay.Day.Id];
+            activityDay.UpdateDay(day);
+        }
+
+        storedDomainPerson.Activities.Add(activity);
+        _ = await _repository
+            .UpdateAsync(storedDomainPerson, cancellationToken)
+            .ConfigureAwait(false);
+
+        await _repository.SaveAsync(cancellationToken).ConfigureAwait(false);
+        return activity;
+    }
+
+    public async Task<IReadOnlyCollection<Activity>> GetActivitiesAsync(long id, CancellationToken cancellationToken)
+    {
+        var criteria = new Criteria<Person, ICollection<Activity>>(
+            x => x.Id == id,
+            x => x.Activities);
+
+        var paginatedActivity = await _repository.GetAsync(criteria, cancellationToken).ConfigureAwait(false);
+        return paginatedActivity.Single().ToList();
+    }
+
     public async Task<Paginated<Person>> GetNearbyPeopleAsync(
         long id,
         double radius,
@@ -72,13 +127,29 @@ public class PersonService : IPersonService
         int pageSize,
         CancellationToken cancellationToken)
     {
-        var person = await GetAsync(id, cancellationToken).ConfigureAwait(false);
-        var address = person.Address;
+        var address = await GetAddressAsync(id, cancellationToken).ConfigureAwait(false);
 
         var nearbyPeople = await _geographicProximityService
             .GetAsync(address, radius, pageIndex, pageSize, cancellationToken)
             .ConfigureAwait(false);
 
         return nearbyPeople;
+    }
+
+    public async Task<Activity> GetActivityAsync(long id, long activityId, CancellationToken cancellationToken)
+    {
+        var criteria = new Criteria<Person, ICollection<Activity>>(
+            x => x.Id == id && x.Activities.Any(y => y.Id == activityId),
+            x => x.Activities);
+
+        var paginatedActivity = await _repository.GetAsync(criteria, cancellationToken).ConfigureAwait(false);
+        var storedActivity = paginatedActivity.Single().Single();
+
+        if (storedActivity is null)
+        {
+            throw new EntityNotFoundException($"No activity entity found for id {activityId} and person id {id}");
+        }
+
+        return storedActivity;
     }
 }

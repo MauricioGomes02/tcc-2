@@ -6,7 +6,7 @@ namespace Tcc2.Domain.Interfaces.Services;
 public interface IGeographicProximityService
 {
     public Task<Paginated<Person>> GetAsync(
-        Address originAddress,
+        CompositeAddress originAddress,
         double radius,
         int pageIndex,
         int pageSize,

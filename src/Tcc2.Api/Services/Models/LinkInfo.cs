@@ -4,20 +4,20 @@ namespace Tcc2.Api.Services.Models;
 
 public class LinkInfo<TResource> where TResource : class
 {
-    private readonly Func<TResource, long>? _getId;
+    private readonly IDictionary<string, Func<TResource, long>>? _getIds;
 
     public LinkInfo(
         string controllerName,
         string routeName,
         string rel,
         IDictionary<string, StringValues>? queryString = null,
-        Func<TResource, long>? getId = null)
+        IDictionary<string, Func<TResource, long>>? getIds = null)
     {
         ControllerName = controllerName;
         RouteName = routeName;
         Rel = rel;
         QueryString = queryString;
-        _getId = getId;
+        _getIds = getIds;
     }
 
     public string ControllerName { get; private set; }
@@ -25,8 +25,13 @@ public class LinkInfo<TResource> where TResource : class
     public string Rel { get; private set; }
     public IDictionary<string, StringValues>? QueryString { get; private set; }
 
-    public long? GetId(TResource resource)
+    public long? GetId(TResource resource, string templateId)
     {
-        return _getId is null ? null : _getId(resource);
+        if (_getIds is not null && _getIds.TryGetValue(templateId, out var getId))
+        {
+            return getId(resource);
+        }
+
+        throw new ArgumentException($"Unable to get id for template {templateId}");
     }
 }

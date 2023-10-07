@@ -20,13 +20,14 @@ public class FunctionalProximityService : IFunctionalProximityService
         int pageSize,
         CancellationToken cancellationToken)
     {
-        var criteria = new Criteria<Person, Person>(
-            x => x.Activities != null
-                && x.Activities.Any(y => y.Date == activity.Date),
-            x => x,
-            pageIndex,
-            pageSize);
+        //var criteria = new Criteria<Person, Person>(
+        //    x => x.Activities != null
+        //        && x.Activities.Any(y => y.Date == activity.Date),
+        //    x => x,
+        //    pageIndex,
+        //    pageSize);
 
-        return _personRepository.GetAsync(criteria, cancellationToken);
+        //return _personRepository.GetAsync(criteria, cancellationToken);
+        throw new NotImplementedException();
     }
 }

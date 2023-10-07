@@ -2,19 +2,30 @@
 
 namespace Tcc2.Domain.Pagination;
 
-public class Paginated<T> where T : IEntity
+public class Paginated<T>
 {
     private readonly int _pageIndex;
     private readonly int _pageSize;
     private readonly int _totalPages;
     private readonly IReadOnlyCollection<T> _items;
 
-    public Paginated(int pageIndex, int pageSize, int totalItems, IReadOnlyCollection<T> items)
+    public Paginated(
+        int pageIndex, 
+        int pageSize, 
+        IReadOnlyCollection<T> items, 
+        int? totalItems = null, 
+        int? totalPages = null)
     {
+        if (totalItems is null && totalPages is null)
+        {
+            throw new ArgumentException(
+                $"Arguments {nameof(totalItems)} and {nameof(totalPages)} cannot be null at the same time");
+        }
+
         _pageIndex = pageIndex;
         _pageSize = pageSize;
-        var totalPages = (int)Math.Ceiling((decimal)totalItems / pageSize);
-        _totalPages = totalPages;
+        totalPages ??= (int)Math.Ceiling((decimal)totalItems! / pageSize);
+        _totalPages = (int)totalPages!;
         _items = items;
     }
 

@@ -6,11 +6,11 @@ namespace Tcc2.Application.Services;
 
 public class PersonValidationService : IPersonValidationService
 {
-    private readonly IAddressValidationService _addressValidatorService;
+    private readonly IAddressValidationService _addressValidationService;
 
     public PersonValidationService(IAddressValidationService addressValidatorService)
     {
-        _addressValidatorService = addressValidatorService;
+        _addressValidationService = addressValidatorService;
     }
 
     public ValidationResult Validate(PersonInput person)
@@ -25,7 +25,7 @@ public class PersonValidationService : IPersonValidationService
                 "Cannot be empty or null");
         }
 
-        var addressValidation = _addressValidatorService.Validate(person.Address);
+        var addressValidation = _addressValidationService.Validate(person.Address);
 
         if (!addressValidation.IsValid)
         {

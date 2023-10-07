@@ -11,7 +11,6 @@ public class Activity : IEntity
 
     public Activity(
         Address address,
-        DateOnly date,
         TimeSpan start,
         TimeSpan end,
         string description,
@@ -20,7 +19,7 @@ public class Activity : IEntity
         long? id = null)
     {
         Address = address;
-        Date = date;
+        ActivityDay = new List<ActivityDay>();
         Start = start;
         End = end;
         PersonId = personId;
@@ -30,11 +29,21 @@ public class Activity : IEntity
     }
 
     public Address Address { get; private set; }
-    public DateOnly Date { get; private set; }
+    public ICollection<ActivityDay> ActivityDay { get; private set; }
     public TimeSpan Start { get; private set; }
     public TimeSpan End { get; private set; }
     public string Description { get; private set; }
     public long? PersonId { get; private set; }
     public Person? Person { get; private set; }
     public long? Id { get; private set; }
+
+    internal void UpdatePersonId(long personId)
+    {
+        PersonId = personId;
+    }
+
+    public void AddActivityDay(ActivityDay activityDay)
+    {
+        ActivityDay.Add(activityDay);
+    }
 }

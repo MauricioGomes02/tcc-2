@@ -20,7 +20,7 @@ public class GeographicCoordinateService : IGeographicCoordinateService
         _httpClientFactory = httpClientFactory;
     }
 
-    public async Task<GeographicCoordinate?> GetAsync(Address address, CancellationToken cancellationToken)
+    public async Task<GeographicCoordinate?> GetAsync(CompositeAddress address, CancellationToken cancellationToken)
     {
         var request = BuildRequest(address);
 
@@ -86,7 +86,7 @@ public class GeographicCoordinateService : IGeographicCoordinateService
         };
     }
 
-    private static HttpRequestMessage BuildRequest(Address address)
+    private static HttpRequestMessage BuildRequest(CompositeAddress address)
     {
         var queryObjects = BuildQueryObjects(
             address.Country,

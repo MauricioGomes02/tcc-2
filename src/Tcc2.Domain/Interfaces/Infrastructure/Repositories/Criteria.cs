@@ -3,7 +3,7 @@ using Tcc2.Domain.Entities;
 
 namespace Tcc2.Domain.Interfaces.Infrastructure.Repositories;
 
-public class Criteria<TAggregateRoot, TResult> where TAggregateRoot : IAggregateRoot where TResult : IEntity
+public class Criteria<TAggregateRoot, TResult> where TAggregateRoot : IAggregateRoot
 {
     public Criteria(
         Expression<Func<TAggregateRoot, bool>> predicate,

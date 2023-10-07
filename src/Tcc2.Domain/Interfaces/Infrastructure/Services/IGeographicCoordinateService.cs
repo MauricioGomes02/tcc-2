@@ -4,5 +4,5 @@ namespace Tcc2.Domain.Interfaces.Infrastructure.Services;
 
 public interface IGeographicCoordinateService
 {
-    Task<GeographicCoordinate?> GetAsync(Address address, CancellationToken cancellationToken);
+    Task<GeographicCoordinate?> GetAsync(CompositeAddress address, CancellationToken cancellationToken);
 }
