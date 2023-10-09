@@ -334,7 +334,10 @@ public class PersonService : IPersonService
             Id = (long)activity.Id!,
             State = activity.Address.State,
             City = activity.Address.City,
-            Description = activity.Description
+            Description = activity.Description,
+            DaysOfWeek = activity.ActivityDay.Select(x => x.Day.Id).ToList(),
+            Start = activity.Start,
+            End = activity.End,
         };
     }
 
@@ -350,7 +353,7 @@ public class PersonService : IPersonService
             Street = activity.Address.Street,
             Number = activity.Address.Number,
             PostalCode = activity.Address.PostalCode,
-            DaysOfWeek = activity.ActivityDay.Select(x => (short)x.DayId!).ToList(),
+            DaysOfWeek = activity.ActivityDay.Select(x => x.Day.Id).ToList(),
             Start = activity.Start,
             End = activity.End
         };

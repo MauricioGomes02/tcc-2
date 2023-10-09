@@ -203,7 +203,8 @@ public class PersonController : ControllerBase
         var geographicallyNearbyPeopleLink = new LinkInfo<AddressCompleteOutput>(
             nameof(PersonController),
             "GetGeographicallyNearbyPeople",
-            "geographicallyNearbyPeople");
+            "geographicallyNearbyPeople",
+            getIds: getIds);
 
         var linkInfos = new List<LinkInfo<AddressCompleteOutput>> 
         { 
