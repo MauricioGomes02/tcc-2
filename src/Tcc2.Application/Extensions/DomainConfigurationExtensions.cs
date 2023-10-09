@@ -10,6 +10,7 @@ public static class DomainConfigurationExtensions
     {
         return services
             .AddTransient<IGeographicProximityService, GeographicProximityService>()
+            .AddTransient<IFunctionalProximityService, FunctionalProximityService>()
             .AddTransient<IPersonService, PersonService>();
     }
 }

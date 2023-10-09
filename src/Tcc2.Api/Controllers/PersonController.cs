@@ -200,13 +200,24 @@ public class PersonController : ControllerBase
             "GetPeople",
             "people");
 
-        var linkInfos = new List<LinkInfo<AddressCompleteOutput>> { selfLink, personLink, peopleLink };
+        var geographicallyNearbyPeopleLink = new LinkInfo<AddressCompleteOutput>(
+            nameof(PersonController),
+            "GetGeographicallyNearbyPeople",
+            "geographicallyNearbyPeople");
+
+        var linkInfos = new List<LinkInfo<AddressCompleteOutput>> 
+        { 
+            selfLink, 
+            personLink, 
+            peopleLink, 
+            geographicallyNearbyPeopleLink 
+        };
 
         var json = _hateoasGeneratorService.GenerateForGetOne(personOutput, linkInfos);
         return Ok(json);
     }
 
-    [HttpGet("{id}/address/nearby-people")]
+    [HttpGet("{id}/address/nearby-people", Name = "GetGeographicallyNearbyPeople")]
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -218,7 +229,7 @@ public class PersonController : ControllerBase
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 20)
     {
-        var paginatedPeopleOutput = await _personService.GetNearbyPeopleAsync(
+        var paginatedPeopleOutput = await _personService.GetGeographicallyNearbyPeopleAsync(
             id,
             radius,
             pageIndex,
@@ -227,23 +238,30 @@ public class PersonController : ControllerBase
 
         var getIds = new Dictionary<string, Func<PersonSimpleOutput, long>>
         {
-            { "{id}", x => (long)x.Id! }
+            { "{id}", x => id }
         };
 
         var queryString = Request.Query.ToDictionary(x => x.Key, x => x.Value);
         var selfLink = new LinkInfo<PersonSimpleOutput>(
             nameof(PersonController),
-            "GetPeople",
+            "GetGeographicallyNearbyPeople",
             "self",
-            queryString);
+            queryString,
+            getIds,
+            false);
 
-        var _selfPersonLink = new LinkInfo<PersonSimpleOutput>(
+        var selfPersonLink = new LinkInfo<PersonSimpleOutput>(
            nameof(PersonController),
            "GetOnePerson",
            "self",
            getIds: getIds);
 
-        var linkInfos = new List<LinkInfo<PersonSimpleOutput>> { _selfPersonLink };
+        var peopleLink = new LinkInfo<PersonSimpleOutput>(
+            nameof(PersonController),
+            "GetPeople",
+            "people");
+
+        var linkInfos = new List<LinkInfo<PersonSimpleOutput>> { selfPersonLink, peopleLink };
 
         var json = _hateoasGeneratorService.GenerateForGetMany(paginatedPeopleOutput, selfLink, "people", linkInfos);
         return Ok(json);
@@ -353,6 +371,7 @@ public class PersonController : ControllerBase
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetActivityAsync(
         [FromRoute] long id,
@@ -402,6 +421,53 @@ public class PersonController : ControllerBase
         };
 
         var json = _hateoasGeneratorService.GenerateForGetOne(activitiesOutput, linkInfos);
+        return Ok(json);
+    }
+
+    [HttpGet("{id}/activities/{activityId}/nearby-people", Name = "GetFunctionallyNearbyPeople")]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetFunctionallyNearbyPeopleAsync(
+        [FromRoute] long id,
+        [FromRoute] long activityId,
+        CancellationToken cancellationToken,
+        [FromQuery] int pageIndex = 0,
+        [FromQuery] int pageSize = 20)
+    {
+        var paginatedPeopleOutput = await _personService
+            .GetFunctionallyNearbyPeopleAsync(id, activityId, pageIndex, pageSize, cancellationToken)
+            .ConfigureAwait(false);
+
+        var getIds = new Dictionary<string, Func<PersonSimpleOutput, long>>
+        {
+            { "{id}", x => id }
+        };
+
+        var queryString = Request.Query.ToDictionary(x => x.Key, x => x.Value);
+        var selfLink = new LinkInfo<PersonSimpleOutput>(
+            nameof(PersonController),
+            "GetGeographicallyNearbyPeople",
+            "self",
+            queryString,
+            getIds,
+            false);
+
+        var selfPersonLink = new LinkInfo<PersonSimpleOutput>(
+           nameof(PersonController),
+           "GetOnePerson",
+           "self",
+           getIds: getIds);
+
+        var peopleLink = new LinkInfo<PersonSimpleOutput>(
+            nameof(PersonController),
+            "GetPeople",
+            "people");
+
+        var linkInfos = new List<LinkInfo<PersonSimpleOutput>> { selfPersonLink, peopleLink };
+
+        var json = _hateoasGeneratorService.GenerateForGetMany(paginatedPeopleOutput, selfLink, "people", linkInfos);
         return Ok(json);
     }
 }

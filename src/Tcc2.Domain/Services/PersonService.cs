@@ -12,15 +12,18 @@ public class PersonService : IPersonService
 {
     private readonly IGeographicCoordinateService _geographicCoordinateService;
     private readonly IGeographicProximityService _geographicProximityService;
+    private readonly IFunctionalProximityService _functionProximityService;
     private readonly IPersonRepository _repository;
 
     public PersonService(
         IGeographicCoordinateService geographicCoordinateService,
         IGeographicProximityService geographicProximityService,
+        IFunctionalProximityService functionProximityService,
         IPersonRepository repository)
     {
         _geographicCoordinateService = geographicCoordinateService;
         _geographicProximityService = geographicProximityService;
+        _functionProximityService = functionProximityService;
         _repository = repository;
     }
 
@@ -110,17 +113,33 @@ public class PersonService : IPersonService
         return activity;
     }
 
-    public async Task<IReadOnlyCollection<Activity>> GetActivitiesAsync(long id, CancellationToken cancellationToken)
+    public Task<IReadOnlyCollection<Activity>> GetActivitiesAsync(long id, CancellationToken cancellationToken)
     {
-        var criteria = new Criteria<Person, ICollection<Activity>>(
+        var criteria = new Criteria<Person, IEnumerable<Activity>>(
             x => x.Id == id,
             x => x.Activities);
 
-        var paginatedActivity = await _repository.GetAsync(criteria, cancellationToken).ConfigureAwait(false);
-        return paginatedActivity.Single().ToList();
+        return _repository.GetManyAsync(criteria, cancellationToken);
     }
 
-    public async Task<Paginated<Person>> GetNearbyPeopleAsync(
+    public async Task<Activity> GetActivityAsync(long id, long activityId, CancellationToken cancellationToken)
+    {
+        var criteria = new Criteria<Person, IEnumerable<Activity>>(
+            x => x.Id == id,
+            x => x.Activities.Where(x => x.Id == activityId));
+
+        var activities = await _repository.GetManyAsync(criteria, cancellationToken).ConfigureAwait(false);
+        var storedActivity = activities.SingleOrDefault();
+
+        if (storedActivity is null)
+        {
+            throw new EntityNotFoundException($"No activity entity found for id {activityId} and person id {id}");
+        }
+
+        return storedActivity;
+    }
+
+    public async Task<Paginated<Person>> GetGeographicallyNearbyPeopleAsync(
         long id,
         double radius,
         int pageIndex,
@@ -136,20 +155,18 @@ public class PersonService : IPersonService
         return nearbyPeople;
     }
 
-    public async Task<Activity> GetActivityAsync(long id, long activityId, CancellationToken cancellationToken)
+    public async Task<Paginated<Person>> GetFunctionallyNearbyPeopleAsync(
+        long id, 
+        long activityId, 
+        int pageIndex, 
+        int pageSize, 
+        CancellationToken cancellationToken)
     {
-        var criteria = new Criteria<Person, ICollection<Activity>>(
-            x => x.Id == id && x.Activities.Any(y => y.Id == activityId),
-            x => x.Activities);
+        var activity = await GetActivityAsync(id, activityId, cancellationToken).ConfigureAwait(false);
+        var nearbyPeople = await _functionProximityService
+            .GetAsync(activity, pageIndex, pageSize, cancellationToken)
+            .ConfigureAwait(false);
 
-        var paginatedActivity = await _repository.GetAsync(criteria, cancellationToken).ConfigureAwait(false);
-        var storedActivity = paginatedActivity.Single().Single();
-
-        if (storedActivity is null)
-        {
-            throw new EntityNotFoundException($"No activity entity found for id {activityId} and person id {id}");
-        }
-
-        return storedActivity;
+        return nearbyPeople;
     }
 }

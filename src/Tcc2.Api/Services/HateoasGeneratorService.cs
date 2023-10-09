@@ -135,15 +135,26 @@ public class HateoasGeneratorService : IHateoasGeneratorService
                .First(x => x.DisplayName!.Contains(linkInfo.ControllerName)
                    && x.AttributeRouteInfo!.Name == linkInfo.RouteName);
 
-        var template = $"/{getManyRoute.AttributeRouteInfo!.Template!}";
+        var template = getManyRoute.AttributeRouteInfo!.Template!;
         var queryString = linkInfo.QueryString!;
 
-        var href = QueryHelpers.AddQueryString(template, queryString);
+        var matches = Regex.Matches(template, @"\{.*?\}");
+        var hrefBase = "/" + template;
+        foreach (var match in matches)
+        {
+            var templateId = match.ToString()!;
+            hrefBase = hrefBase.Replace(templateId, linkInfo.GetId(default!, templateId).ToString());
+        }
+
+        var href = QueryHelpers.AddQueryString(hrefBase, queryString);
         var selfLink = GetLink("self", href);
         collection.Add(selfLink);
 
-        var findlink = GetLink("find", $"{template}/{{?id}}", true);
-        collection.Add(findlink);
+        if (linkInfo.IncludeFind)
+        {
+            var findlink = GetLink("find", $"{hrefBase}/{{?id}}", true);
+            collection.Add(findlink);
+        }
 
         var pageIndex = @object.PageIndex;
         var totalPages = @object.TotalPages;

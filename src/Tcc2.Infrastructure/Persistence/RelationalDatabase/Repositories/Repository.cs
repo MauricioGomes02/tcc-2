@@ -34,6 +34,20 @@ public abstract class Repository<TAggregateRoot> : IRepository<TAggregateRoot> w
         return entities;
     }
 
+    public async Task<IReadOnlyCollection<TResult>> GetManyAsync<TResult>(
+        Criteria<TAggregateRoot, IEnumerable<TResult>> criteria, 
+        CancellationToken cancellationToken)
+    {
+        var entities = await _context
+            .Set<TAggregateRoot>()
+            .Where(criteria.Predicate)
+            .SelectMany(criteria.Projection)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return entities;
+    }
+
     public async Task<Paginated<TResult>> GetPaginatedAsync<TResult>(
         Criteria<TAggregateRoot, TResult> criteria,
         CancellationToken cancellationToken)

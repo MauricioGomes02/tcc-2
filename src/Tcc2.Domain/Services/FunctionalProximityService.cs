@@ -20,14 +20,25 @@ public class FunctionalProximityService : IFunctionalProximityService
         int pageSize,
         CancellationToken cancellationToken)
     {
-        //var criteria = new Criteria<Person, Person>(
-        //    x => x.Activities != null
-        //        && x.Activities.Any(y => y.Date == activity.Date),
-        //    x => x,
-        //    pageIndex,
-        //    pageSize);
+        var days = activity.ActivityDay.Select(x => x.Day.Id);
 
-        //return _personRepository.GetAsync(criteria, cancellationToken);
-        throw new NotImplementedException();
+        var criteria = new Criteria<Person, Person>(
+            storedPerson => storedPerson.Activities != null && storedPerson.Id != activity.PersonId
+                && storedPerson.Activities.Any(
+                    // Day
+                    storedActivity => storedActivity.ActivityDay.Any(
+                        activityDay => days.Contains(activityDay.Day.Id))
+                    // Address
+                    && (storedActivity.Address.PostalCode == activity.Address.PostalCode 
+                        && storedActivity.Address.Number == activity.Address.Number)
+                    // Schedules
+                    && ((storedActivity.Start >= activity.Start && storedActivity.Start < activity.End)
+                        || (storedActivity.Start <= activity.Start && storedActivity.End > activity.End)
+                    )),
+            x => x,
+            pageIndex,
+            pageSize);
+
+        return _personRepository.GetPaginatedAsync(criteria, cancellationToken);
     }
 }

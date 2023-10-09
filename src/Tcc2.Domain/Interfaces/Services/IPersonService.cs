@@ -12,9 +12,15 @@ public interface IPersonService
     Task<Activity> AddActivityAsync(long id, Activity activity, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<Activity>> GetActivitiesAsync(long id, CancellationToken cancellationToken);
     Task<Activity> GetActivityAsync(long id, long activityId, CancellationToken cancellationToken);
-    Task<Paginated<Person>> GetNearbyPeopleAsync(
+    Task<Paginated<Person>> GetGeographicallyNearbyPeopleAsync(
         long id,
         double radius,
+        int pageIndex,
+        int pageSize,
+        CancellationToken cancellationToken);
+    Task<Paginated<Person>> GetFunctionallyNearbyPeopleAsync(
+        long id,
+        long activityId,
         int pageIndex,
         int pageSize,
         CancellationToken cancellationToken);

@@ -11,6 +11,10 @@ public interface IRepository<TAggregateRoot> where TAggregateRoot : IAggregateRo
         Criteria<TAggregateRoot, TResult> criteria,
         CancellationToken cancellationToken);
 
+    Task<IReadOnlyCollection<TResult>> GetManyAsync<TResult>(
+        Criteria<TAggregateRoot, IEnumerable<TResult>> criteria,
+        CancellationToken cancellationToken);
+
     Task<Paginated<TResult>> GetPaginatedAsync<TResult>(
         Criteria<TAggregateRoot, TResult> criteria,
         CancellationToken cancellationToken);

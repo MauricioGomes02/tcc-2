@@ -79,7 +79,22 @@ public class PersonService : IPersonService
         return CompleteConvert(storedDomainPerson);
     }
 
-    public async Task<Paginated<PersonSimpleOutput>> GetNearbyPeopleAsync(
+    #endregion
+
+    #region Address
+
+    public async Task<AddressCompleteOutput> GetAddressAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentException($"The argument {nameof(id)} cannot be less than or equal to zero");
+        }
+
+        var storedDomainAddress = await _personService.GetAddressAsync(id, cancellationToken).ConfigureAwait(false);
+        return CompleteConvert(storedDomainAddress);
+    }
+
+    public async Task<Paginated<PersonSimpleOutput>> GetGeographicallyNearbyPeopleAsync(
         long id,
         double radius,
         int pageIndex,
@@ -103,7 +118,7 @@ public class PersonService : IPersonService
         }
 
         var storedPaginatedDomainPeople = await _personService
-            .GetNearbyPeopleAsync(id, radius, pageIndex, pageSize, cancellationToken)
+            .GetGeographicallyNearbyPeopleAsync(id, radius, pageIndex, pageSize, cancellationToken)
             .ConfigureAwait(false);
 
         var peopleOutput = storedPaginatedDomainPeople.Items.Select(SimpleConvert);
@@ -112,21 +127,6 @@ public class PersonService : IPersonService
             storedPaginatedDomainPeople.PageSize,
             peopleOutput.ToList(),
             totalPages: storedPaginatedDomainPeople.TotalPages);
-    }
-
-    #endregion
-
-    #region Address
-
-    public async Task<AddressCompleteOutput> GetAddressAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentException($"The argument {nameof(id)} cannot be less than or equal to zero");
-        }
-
-        var storedDomainAddress = await _personService.GetAddressAsync(id, cancellationToken).ConfigureAwait(false);
-        return CompleteConvert(storedDomainAddress);
     }
 
     #endregion
@@ -182,6 +182,45 @@ public class PersonService : IPersonService
 
         var activity = await _personService.GetActivityAsync(id, activityId, cancellationToken).ConfigureAwait(false);
         return CompleteConvert(activity);
+    }
+
+    public async Task<Paginated<PersonSimpleOutput>> GetFunctionallyNearbyPeopleAsync(
+        long id, 
+        long activityId, 
+        int pageIndex, 
+        int pageSize, 
+        CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentException($"The argument {nameof(id)} cannot be less than or equal to zero");
+        }
+
+        if (activityId <= 0)
+        {
+            throw new ArgumentException($"The argument {nameof(activityId)} cannot be less than or equal to zero");
+        }
+
+        if (pageIndex < 0)
+        {
+            throw new ArgumentException($"The {nameof(pageIndex)} argument cannot be less than zero");
+        }
+
+        if (pageSize <= 0)
+        {
+            throw new ArgumentException($"The {nameof(pageSize)} argument cannot be less than or equal to zero");
+        }
+
+        var storedPaginatedDomainPeople = await _personService
+            .GetFunctionallyNearbyPeopleAsync(id, activityId, pageIndex, pageSize, cancellationToken)
+            .ConfigureAwait(false);
+
+        var peopleOutput = storedPaginatedDomainPeople.Items.Select(SimpleConvert);
+        return new Paginated<PersonSimpleOutput>(
+            storedPaginatedDomainPeople.PageIndex,
+            storedPaginatedDomainPeople.PageSize,
+            peopleOutput.ToList(),
+            totalPages: storedPaginatedDomainPeople.TotalPages);
     }
 
     #endregion

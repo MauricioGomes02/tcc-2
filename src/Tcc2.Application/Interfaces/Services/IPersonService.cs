@@ -16,9 +16,15 @@ public interface IPersonService
         CancellationToken cancellationToken);
     Task<IReadOnlyCollection<ActivitySimpleOutput>> GetActivitiesAsync(long id, CancellationToken cancellationToken);
     Task<ActivityCompleteOutput> GetActivityAsync(long id, long activityId, CancellationToken cancellationToken);
-    Task<Paginated<PersonSimpleOutput>> GetNearbyPeopleAsync(
+    Task<Paginated<PersonSimpleOutput>> GetGeographicallyNearbyPeopleAsync(
         long id,
         double radius,
+        int pageIndex,
+        int pageSize,
+        CancellationToken cancellationToken);
+    Task<Paginated<PersonSimpleOutput>> GetFunctionallyNearbyPeopleAsync(
+        long id, 
+        long activityId,
         int pageIndex,
         int pageSize,
         CancellationToken cancellationToken);
