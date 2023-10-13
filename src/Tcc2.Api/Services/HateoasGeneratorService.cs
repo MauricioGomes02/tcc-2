@@ -165,13 +165,13 @@ public class HateoasGeneratorService : IHateoasGeneratorService
             if ((pageIndex - 1) <= (totalPages - 1))
             {
                 queryString[nameof(pageIndex)] = $"{pageIndex - 1}";
-                href = QueryHelpers.AddQueryString(template, queryString);
+                href = QueryHelpers.AddQueryString(hrefBase, queryString);
                 var previousLink = GetLink("previous", href);
                 collection.Add(previousLink);
             }
 
             queryString[nameof(pageIndex)] = "0";
-            href = QueryHelpers.AddQueryString(template, queryString);
+            href = QueryHelpers.AddQueryString(hrefBase, queryString);
             var firstLink = GetLink("first", href);
             collection.Add(firstLink);
         }
@@ -182,13 +182,13 @@ public class HateoasGeneratorService : IHateoasGeneratorService
             if ((pageIndex + 1) >= 0)
             {
                 queryString[nameof(pageIndex)] = $"{pageIndex + 1}";
-                href = QueryHelpers.AddQueryString(template, queryString);
+                href = QueryHelpers.AddQueryString(hrefBase, queryString);
                 var nextLink = GetLink("next", href);
                 collection.Add(nextLink);
             }
 
             queryString[nameof(pageIndex)] = $"{totalPages - 1}";
-            href = QueryHelpers.AddQueryString(template, queryString);
+            href = QueryHelpers.AddQueryString(hrefBase, queryString);
             var lastLink = GetLink("last", href);
             collection.Add(lastLink);
         }

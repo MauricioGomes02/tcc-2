@@ -9,7 +9,11 @@ public class Person : IAggregateRoot
 
     }
 
-    public Person(string name, CompositeAddress address, ICollection<Activity>? activities = null, long? id = null)
+    public Person(
+        string name,
+        CompositeAddress address,
+        ICollection<Activity>? activities = null,
+        long? id = null)
     {
         Name = name;
         Address = address;

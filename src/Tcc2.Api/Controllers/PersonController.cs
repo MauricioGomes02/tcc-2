@@ -55,7 +55,7 @@ public class PersonController : ControllerBase
         var activitiesLink = new LinkInfo<PersonCompleteOutput>(
            nameof(PersonController),
            "GetActivities",
-           "self",
+           "activities",
            getIds: getIds);
 
         var linkInfos = new List<LinkInfo<PersonCompleteOutput>> { selfLink, addressLink, peopleLink, activitiesLink };
@@ -108,7 +108,7 @@ public class PersonController : ControllerBase
         var activitiesLink = new LinkInfo<PersonSimpleOutput>(
             nameof(PersonController),
             "GetActivities",
-            "self",
+            "activities",
             getIds: getIds);
 
         var linkInfos = new List<LinkInfo<PersonSimpleOutput>> { _selfLink, _addressLink, activitiesLink };
@@ -237,7 +237,7 @@ public class PersonController : ControllerBase
             pageSize,
             cancellationToken).ConfigureAwait(false);
 
-        var getIds = new Dictionary<string, Func<PersonSimpleOutput, long>>
+        var getIdSelf = new Dictionary<string, Func<PersonSimpleOutput, long>>
         {
             { "{id}", x => id }
         };
@@ -248,14 +248,19 @@ public class PersonController : ControllerBase
             "GetGeographicallyNearbyPeople",
             "self",
             queryString,
-            getIds,
+            getIdSelf,
             false);
+
+        var getIdForOnePerson = new Dictionary<string, Func<PersonSimpleOutput, long>>
+        {
+            { "{id}", x => (long)x.Id! }
+        };
 
         var selfPersonLink = new LinkInfo<PersonSimpleOutput>(
            nameof(PersonController),
            "GetOnePerson",
            "self",
-           getIds: getIds);
+           getIds: getIdForOnePerson);
 
         var peopleLink = new LinkInfo<PersonSimpleOutput>(
             nameof(PersonController),
@@ -441,7 +446,7 @@ public class PersonController : ControllerBase
             .GetFunctionallyNearbyPeopleAsync(id, activityId, pageIndex, pageSize, cancellationToken)
             .ConfigureAwait(false);
 
-        var getIds = new Dictionary<string, Func<PersonSimpleOutput, long>>
+        var geIdSelf = new Dictionary<string, Func<PersonSimpleOutput, long>>
         {
             { "{id}", x => id }
         };
@@ -452,14 +457,19 @@ public class PersonController : ControllerBase
             "GetGeographicallyNearbyPeople",
             "self",
             queryString,
-            getIds,
+            geIdSelf,
             false);
+
+        var getIdForOnePerson = new Dictionary<string, Func<PersonSimpleOutput, long>>
+        {
+            { "{id}", x => (long)x.Id! }
+        };
 
         var selfPersonLink = new LinkInfo<PersonSimpleOutput>(
            nameof(PersonController),
            "GetOnePerson",
            "self",
-           getIds: getIds);
+           getIds: getIdForOnePerson);
 
         var peopleLink = new LinkInfo<PersonSimpleOutput>(
             nameof(PersonController),

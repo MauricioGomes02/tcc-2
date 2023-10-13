@@ -113,13 +113,10 @@ public class PersonService : IPersonService
         return activity;
     }
 
-    public Task<IReadOnlyCollection<Activity>> GetActivitiesAsync(long id, CancellationToken cancellationToken)
+    public async Task<IReadOnlyCollection<Activity>> GetActivitiesAsync(long id, CancellationToken cancellationToken)
     {
-        var criteria = new Criteria<Person, IEnumerable<Activity>>(
-            x => x.Id == id,
-            x => x.Activities);
-
-        return _repository.GetManyAsync(criteria, cancellationToken);
+        var person = await GetAsync(id, cancellationToken).ConfigureAwait(false);
+        return person.Activities.ToList();
     }
 
     public async Task<Activity> GetActivityAsync(long id, long activityId, CancellationToken cancellationToken)
