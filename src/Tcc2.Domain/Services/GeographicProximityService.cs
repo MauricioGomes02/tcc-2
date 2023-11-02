@@ -1,9 +1,11 @@
 ﻿using System.Linq.Expressions;
 using Tcc2.Domain.Entities;
 using Tcc2.Domain.Entities.ValueObjects;
+using Tcc2.Domain.Exceptions;
 using Tcc2.Domain.Interfaces.Infrastructure.Repositories;
 using Tcc2.Domain.Interfaces.Services;
-using Tcc2.Domain.Pagination;
+using Tcc2.Domain.Models.Pagination;
+using Tcc2.Domain.Models.Validation;
 
 namespace Tcc2.Domain.Services;
 public class GeographicProximityService : IGeographicProximityService
@@ -23,6 +25,21 @@ public class GeographicProximityService : IGeographicProximityService
         int pageSize,
         CancellationToken cancellationToken)
     {
+        var validationResult = new ValidationResult();
+
+        if (originAddress.GeographicCoordinate is null)
+        {
+            validationResult.Add(
+                nameof(originAddress.GeographicCoordinate),
+                nameof(GeographicProximityService),
+                "Cannot be null");
+        }
+
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException("Invalid input", validationResult);
+        }
+
         var originLatitude = originAddress.GeographicCoordinate!.Latitude;
         var originLongitude = originAddress.GeographicCoordinate!.Longitude;
 

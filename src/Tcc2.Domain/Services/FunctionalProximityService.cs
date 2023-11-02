@@ -1,7 +1,7 @@
 ﻿using Tcc2.Domain.Entities;
 using Tcc2.Domain.Interfaces.Infrastructure.Repositories;
 using Tcc2.Domain.Interfaces.Services;
-using Tcc2.Domain.Pagination;
+using Tcc2.Domain.Models.Pagination;
 
 namespace Tcc2.Domain.Services;
 
@@ -20,14 +20,14 @@ public class FunctionalProximityService : IFunctionalProximityService
         int pageSize,
         CancellationToken cancellationToken)
     {
-        var days = activity.ActivityDay.Select(x => x.Day.Id);
+        var days = activity.ActivityDay.Select(x => x.DayId);
 
         var criteria = new Criteria<Person, Person>(
             storedPerson => storedPerson.Activities != null && storedPerson.Id != activity.PersonId
                 && storedPerson.Activities.Any(
                     // Day
                     storedActivity => storedActivity.ActivityDay.Any(
-                        activityDay => days.Contains(activityDay.Day.Id))
+                        activityDay => days.Contains(activityDay.Day!.Id))
                     // Address
                     && (storedActivity.Address.PostalCode == activity.Address.PostalCode 
                         && storedActivity.Address.Number == activity.Address.Number)

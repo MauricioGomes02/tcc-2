@@ -1,41 +1,42 @@
-﻿using System.Linq;
-using Tcc2.Application.Exceptions;
-using Tcc2.Application.Interfaces.Services;
+﻿using Tcc2.Application.Interfaces.Services;
 using Tcc2.Application.Models.Inputs;
 using Tcc2.Application.Models.Outputs;
 using Tcc2.Domain.Entities;
 using Tcc2.Domain.Entities.ValueObjects;
-using Tcc2.Domain.Interfaces.Infrastructure.Repositories;
-using Tcc2.Domain.Pagination;
+using Tcc2.Domain.Exceptions;
+using Tcc2.Domain.Models.Pagination;
+using Tcc2.Domain.Models.Validation;
 
 namespace Tcc2.Application.Services;
 public class PersonService : IPersonService
 {
     private readonly Domain.Interfaces.Services.IPersonService _personService;
-    private readonly IPersonValidationService _personValidatorService;
-    private readonly IActivityValidationService _activityValidationService;
 
-    public PersonService(
-        Domain.Interfaces.Services.IPersonService personService,
-        IPersonValidationService personValidatorService,
-        IActivityValidationService activityValidationService)
+    public PersonService(Domain.Interfaces.Services.IPersonService personService)
     {
         _personService = personService;
-        _personValidatorService = personValidatorService;
-        _activityValidationService = activityValidationService;
     }
 
     #region Person
 
     public async Task<PersonCompleteOutput> AddAsync(PersonInput person, CancellationToken cancellationToken)
     {
-        var validation = _personValidatorService.Validate(person);
-        if (!validation.IsValid)
+        var validationResult = new ValidationResult();
+
+        if (person is null)
         {
-            throw new ValidationModelException("The input model for adding a new person is not valid", validation);
+            validationResult.Add(
+                nameof(person),
+                nameof(PersonService),
+                "Cannot be null");
         }
 
-        var domainPerson = Convert(person);
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException("Invalid input", validationResult);
+        }
+
+        var domainPerson = Convert(person!);
         var storedDomainPerson = await _personService.AddAsync(domainPerson, cancellationToken).ConfigureAwait(false);
         return CompleteConvert(storedDomainPerson);
     }
@@ -45,16 +46,6 @@ public class PersonService : IPersonService
         int pageSize,
         CancellationToken cancellationToken)
     {
-        if (pageIndex < 0)
-        {
-            throw new ArgumentException($"The {nameof(pageIndex)} argument cannot be less than zero");
-        }
-
-        if (pageSize <= 0)
-        {
-            throw new ArgumentException($"The {nameof(pageSize)} argument cannot be less than or equal to zero");
-        }
-
         var storedPaginatedDomainPeople = await _personService
             .GetAsync(pageIndex, pageSize, cancellationToken)
             .ConfigureAwait(false);
@@ -70,11 +61,6 @@ public class PersonService : IPersonService
 
     public async Task<PersonCompleteOutput> GetAsync(long id, CancellationToken cancellationToken)
     {
-        if (id <= 0)
-        {
-            throw new ArgumentException($"The argument {nameof(id)} cannot be less than or equal to zero");
-        }
-
         var storedDomainPerson = await _personService.GetAsync(id, cancellationToken).ConfigureAwait(false);
         return CompleteConvert(storedDomainPerson);
     }
@@ -85,11 +71,6 @@ public class PersonService : IPersonService
 
     public async Task<AddressCompleteOutput> GetAddressAsync(long id, CancellationToken cancellationToken)
     {
-        if (id <= 0)
-        {
-            throw new ArgumentException($"The argument {nameof(id)} cannot be less than or equal to zero");
-        }
-
         var storedDomainAddress = await _personService.GetAddressAsync(id, cancellationToken).ConfigureAwait(false);
         return CompleteConvert(storedDomainAddress);
     }
@@ -101,22 +82,6 @@ public class PersonService : IPersonService
         int pageSize,
         CancellationToken cancellationToken)
     {
-        if (pageIndex < 0)
-        {
-            throw new ArgumentException($"The {nameof(pageIndex)} argument cannot be less than zero");
-        }
-
-        if (pageSize <= 0)
-        {
-            throw new ArgumentException($"The {nameof(pageSize)} argument cannot be less than or equal to zero");
-        }
-
-        if (radius <= 0)
-        {
-            throw new ArgumentException(
-                $"The {nameof(radius)} argument cannot be less than or equal to zero");
-        }
-
         var storedPaginatedDomainPeople = await _personService
             .GetGeographicallyNearbyPeopleAsync(id, radius, pageIndex, pageSize, cancellationToken)
             .ConfigureAwait(false);
@@ -135,16 +100,25 @@ public class PersonService : IPersonService
 
     public async Task<ActivityCompleteOutput> AddActivityAsync(
         long id,
-        ActivityInput? activityInput,
+        ActivityInput? activity,
         CancellationToken cancellationToken)
     {
-        var validation = _activityValidationService.Validate(activityInput);
-        if (!validation.IsValid)
+        var validationResult = new ValidationResult();
+
+        if (activity is null)
         {
-            throw new ValidationModelException("The input model for adding a new activity is not valid", validation);
+            validationResult.Add(
+                nameof(activity),
+                nameof(PersonService),
+                "Cannot be null");
         }
 
-        var domainActivity = Convert(activityInput!);
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException("Invalid input", validationResult);
+        }
+
+        var domainActivity = Convert(activity!);
         var storedDomainActivity = await _personService
             .AddActivityAsync(id, domainActivity, cancellationToken)
             .ConfigureAwait(false);
@@ -156,11 +130,6 @@ public class PersonService : IPersonService
         long id,
         CancellationToken cancellationToken)
     {
-        if (id <= 0)
-        {
-            throw new ArgumentException($"The argument {nameof(id)} cannot be less than or equal to zero");
-        }
-
         var activities = await _personService.GetActivitiesAsync(id, cancellationToken).ConfigureAwait(false);
         return activities.Select(SimpleConvert).ToList();
     }
@@ -170,47 +139,17 @@ public class PersonService : IPersonService
         long activityId,
         CancellationToken cancellationToken)
     {
-        if (id <= 0)
-        {
-            throw new ArgumentException($"The argument {nameof(id)} cannot be less than or equal to zero");
-        }
-
-        if (activityId <= 0)
-        {
-            throw new ArgumentException($"The argument {nameof(activityId)} cannot be less than or equal to zero");
-        }
-
         var activity = await _personService.GetActivityAsync(id, activityId, cancellationToken).ConfigureAwait(false);
         return CompleteConvert(activity);
     }
 
     public async Task<Paginated<PersonSimpleOutput>> GetFunctionallyNearbyPeopleAsync(
-        long id, 
-        long activityId, 
-        int pageIndex, 
-        int pageSize, 
+        long id,
+        long activityId,
+        int pageIndex,
+        int pageSize,
         CancellationToken cancellationToken)
     {
-        if (id <= 0)
-        {
-            throw new ArgumentException($"The argument {nameof(id)} cannot be less than or equal to zero");
-        }
-
-        if (activityId <= 0)
-        {
-            throw new ArgumentException($"The argument {nameof(activityId)} cannot be less than or equal to zero");
-        }
-
-        if (pageIndex < 0)
-        {
-            throw new ArgumentException($"The {nameof(pageIndex)} argument cannot be less than zero");
-        }
-
-        if (pageSize <= 0)
-        {
-            throw new ArgumentException($"The {nameof(pageSize)} argument cannot be less than or equal to zero");
-        }
-
         var storedPaginatedDomainPeople = await _personService
             .GetFunctionallyNearbyPeopleAsync(id, activityId, pageIndex, pageSize, cancellationToken)
             .ConfigureAwait(false);
@@ -317,12 +256,8 @@ public class PersonService : IPersonService
             Convert(activity.Address),
             activity.Start,
             activity.End,
+            activity.DaysOfWeek,
             activity.Description);
-
-        foreach (var dayOfWeek in activity.DaysOfWeek)
-        {
-            convertedActivity.AddActivityDay(new ActivityDay(convertedActivity, new Day(dayOfWeek)));
-        }
 
         return convertedActivity;
     }

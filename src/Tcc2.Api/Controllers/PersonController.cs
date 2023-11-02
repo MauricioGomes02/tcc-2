@@ -206,12 +206,12 @@ public class PersonController : ControllerBase
             "geographicallyNearbyPeople",
             getIds: getIds);
 
-        var linkInfos = new List<LinkInfo<AddressCompleteOutput>> 
-        { 
-            selfLink, 
-            personLink, 
-            peopleLink, 
-            geographicallyNearbyPeopleLink 
+        var linkInfos = new List<LinkInfo<AddressCompleteOutput>>
+        {
+            selfLink,
+            personLink,
+            peopleLink,
+            geographicallyNearbyPeopleLink
         };
 
         var json = _hateoasGeneratorService.GenerateForGetOne(personOutput, linkInfos);
@@ -418,12 +418,12 @@ public class PersonController : ControllerBase
             "person",
             getIds: getIds);
 
-        var linkInfos = new List<LinkInfo<ActivitySimpleOutput>> 
-        { 
-            selfActivityLink, 
-            activitiesLink, 
-            peopleLink, 
-            selfPersonLink 
+        var linkInfos = new List<LinkInfo<ActivitySimpleOutput>>
+        {
+            selfActivityLink,
+            activitiesLink,
+            peopleLink,
+            selfPersonLink
         };
 
         var json = _hateoasGeneratorService.GenerateForGetOne(activitiesOutput, linkInfos);

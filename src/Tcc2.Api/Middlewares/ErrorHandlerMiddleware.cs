@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Tcc2.Application.Exceptions;
 using Tcc2.Domain.Exceptions;
 
 namespace Tcc2.Api.Middlewares;
@@ -20,7 +19,7 @@ public class ErrorHandlerMiddleware : IMiddleware
 
     private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        if (exception is ValidationModelException)
+        if (exception is ValidationException)
         {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
         }
@@ -50,7 +49,7 @@ public class ErrorHandlerMiddleware : IMiddleware
             Detail = exception.Message
         };
 
-        if (exception is ValidationModelException validationModelException)
+        if (exception is ValidationException validationModelException)
         {
             var invalidFields = validationModelException.ValidationResult.InvalidFields;
 

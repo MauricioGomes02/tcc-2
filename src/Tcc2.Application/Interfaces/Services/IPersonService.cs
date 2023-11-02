@@ -1,6 +1,6 @@
 ﻿using Tcc2.Application.Models.Inputs;
 using Tcc2.Application.Models.Outputs;
-using Tcc2.Domain.Pagination;
+using Tcc2.Domain.Models.Pagination;
 
 namespace Tcc2.Application.Interfaces.Services;
 
@@ -12,7 +12,7 @@ public interface IPersonService
     Task<AddressCompleteOutput> GetAddressAsync(long id, CancellationToken cancellationToken);
     Task<ActivityCompleteOutput> AddActivityAsync(
         long id,
-        ActivityInput? activityInput,
+        ActivityInput? activity,
         CancellationToken cancellationToken);
     Task<IReadOnlyCollection<ActivitySimpleOutput>> GetActivitiesAsync(long id, CancellationToken cancellationToken);
     Task<ActivityCompleteOutput> GetActivityAsync(long id, long activityId, CancellationToken cancellationToken);

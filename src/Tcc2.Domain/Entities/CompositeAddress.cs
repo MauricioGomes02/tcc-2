@@ -1,4 +1,5 @@
 ﻿namespace Tcc2.Domain.Entities.ValueObjects;
+
 public class CompositeAddress : Address, IEntity
 {
     public CompositeAddress()
@@ -32,11 +33,7 @@ public class CompositeAddress : Address, IEntity
 
     internal void AddGeographicCoordinate(GeographicCoordinate geographicCoordinate)
     {
+        ArgumentNullException.ThrowIfNull(nameof(geographicCoordinate));
         GeographicCoordinate = geographicCoordinate;
-    }
-
-    public override string ToString()
-    {
-        return $"{Street}, {Number} - {Neighborhood}, {City} - {State}, {Country}";
     }
 }

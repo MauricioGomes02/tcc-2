@@ -1,4 +1,4 @@
-﻿namespace Tcc2.Application.Models.Validation;
+﻿namespace Tcc2.Domain.Models.Validation;
 
 public class InvalidField
 {

@@ -1,21 +1,21 @@
-﻿namespace Tcc2.Application.Models.Validation;
+﻿namespace Tcc2.Domain.Models.Validation;
 
 public class ValidationResult
 {
     private readonly List<InvalidField> _invalidFields;
 
-    internal ValidationResult()
+    public ValidationResult()
     {
         _invalidFields = new List<InvalidField>();
     }
 
-    internal void Add(string fieldName, string modelName, string description)
+    public void Add(string fieldName, string modelName, string description)
     {
         var fieldValidation = new InvalidField(fieldName, modelName, description);
         _invalidFields.Add(fieldValidation);
     }
 
-    internal void AddRange(IEnumerable<InvalidField> invalidFields)
+    public void AddRange(IEnumerable<InvalidField> invalidFields)
     {
         _invalidFields.AddRange(invalidFields);
     }

@@ -8,10 +8,6 @@ public static class ApplicationConfigurationExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        return services
-            .AddTransient<IPersonService, PersonService>()
-            .AddTransient<IPersonValidationService, PersonValidationService>()
-            .AddTransient<IAddressValidationService, AddressValidationService>()
-            .AddTransient<IActivityValidationService, ActivityValidationService>();
+        return services.AddTransient<IPersonService, PersonService>();
     }
 }

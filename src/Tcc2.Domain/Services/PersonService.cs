@@ -1,10 +1,12 @@
-﻿using Tcc2.Domain.Entities;
+﻿using System.Runtime.CompilerServices;
+using Tcc2.Domain.Entities;
 using Tcc2.Domain.Entities.ValueObjects;
 using Tcc2.Domain.Exceptions;
 using Tcc2.Domain.Interfaces.Infrastructure.Repositories;
 using Tcc2.Domain.Interfaces.Infrastructure.Services;
 using Tcc2.Domain.Interfaces.Services;
-using Tcc2.Domain.Pagination;
+using Tcc2.Domain.Models.Pagination;
+using Tcc2.Domain.Models.Validation;
 
 namespace Tcc2.Domain.Services;
 
@@ -29,6 +31,8 @@ public class PersonService : IPersonService
 
     public async Task<Person> AddAsync(Person person, CancellationToken cancellationToken)
     {
+        person.Validate();
+
         var geographicCoordinate = await _geographicCoordinateService
             .GetAsync(person.Address, cancellationToken)
             .ConfigureAwait(false);
@@ -48,6 +52,30 @@ public class PersonService : IPersonService
 
     public Task<Paginated<Person>> GetAsync(int pageIndex, int pageSize, CancellationToken cancellationToken)
     {
+        var validationResult = new ValidationResult();
+        var modelName = nameof(PersonService);
+
+        if (pageIndex < 0)
+        {
+            validationResult.Add(
+                nameof(pageIndex),
+                modelName,
+                "Cannot be less than zero");
+        }
+
+        if (pageSize <= 0)
+        {
+            validationResult.Add(
+                nameof(pageSize),
+                modelName,
+                "Cannot be less than or equal to zero");
+        }
+
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException("Invalid input", validationResult);
+        }
+
         var criteria = new Criteria<Person, Person>(
             x => true,
             x => x,
@@ -59,6 +87,14 @@ public class PersonService : IPersonService
 
     public async Task<Person> GetAsync(long id, CancellationToken cancellationToken)
     {
+        var validationResult = new ValidationResult();
+        validationResult.AddRange(GetIdInvalidFields(id));
+
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException("Invalid input", validationResult);
+        }
+
         var criteria = new Criteria<Person, Person>(x => x.Id == id, x => x);
 
         var person = (await _repository
@@ -75,6 +111,14 @@ public class PersonService : IPersonService
 
     public async Task<CompositeAddress> GetAddressAsync(long id, CancellationToken cancellationToken)
     {
+        var validationResult = new ValidationResult();
+        validationResult.AddRange(GetIdInvalidFields(id));
+
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException("Invalid input", validationResult);
+        }
+
         var criteria = new Criteria<Person, CompositeAddress>(
             x => x.Id == id,
             x => x.Address);
@@ -93,17 +137,9 @@ public class PersonService : IPersonService
 
     public async Task<Activity> AddActivityAsync(long id, Activity activity, CancellationToken cancellationToken)
     {
+        activity.Validate();
+
         var storedDomainPerson = await GetAsync(id, cancellationToken).ConfigureAwait(false);
-        var days = (await _repository
-            .GetDaysAsync(cancellationToken)
-            .ConfigureAwait(false)).ToDictionary(x => x.Id);
-
-        foreach (var activityDay in activity.ActivityDay)
-        {
-            var day = days[activityDay.Day.Id];
-            activityDay.UpdateDay(day);
-        }
-
         storedDomainPerson.Activities.Add(activity);
         _ = await _repository
             .UpdateAsync(storedDomainPerson, cancellationToken)
@@ -121,12 +157,18 @@ public class PersonService : IPersonService
 
     public async Task<Activity> GetActivityAsync(long id, long activityId, CancellationToken cancellationToken)
     {
-        var criteria = new Criteria<Person, IEnumerable<Activity>>(
-            x => x.Id == id,
-            x => x.Activities.Where(x => x.Id == activityId));
+        var validationResult = new ValidationResult();
+        validationResult.AddRange(GetIdInvalidFields(id));
+        validationResult.AddRange(GetIdInvalidFields(activityId));
 
-        var activities = await _repository.GetManyAsync(criteria, cancellationToken).ConfigureAwait(false);
-        var storedActivity = activities.SingleOrDefault();
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException("Invalid input", validationResult);
+        }
+
+        var person = await GetAsync(id, cancellationToken).ConfigureAwait(false);
+        var activities = person.Activities;
+        var storedActivity = activities.SingleOrDefault(x => x.Id == activityId);
 
         if (storedActivity is null)
         {
@@ -143,6 +185,23 @@ public class PersonService : IPersonService
         int pageSize,
         CancellationToken cancellationToken)
     {
+        var validationResult = new ValidationResult();
+        validationResult.AddRange(GetIdInvalidFields(id));
+        validationResult.AddRange(GetPaginationInvalidFields(pageIndex, pageSize));
+
+        if (radius <= 0)
+        {
+            validationResult.Add(
+                nameof(radius),
+                nameof(PersonService),
+                "Cannot be less than or equal to zero");
+        }
+
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException("Invalid input", validationResult);
+        }
+
         var address = await GetAddressAsync(id, cancellationToken).ConfigureAwait(false);
 
         var nearbyPeople = await _geographicProximityService
@@ -153,10 +212,10 @@ public class PersonService : IPersonService
     }
 
     public async Task<Paginated<Person>> GetFunctionallyNearbyPeopleAsync(
-        long id, 
-        long activityId, 
-        int pageIndex, 
-        int pageSize, 
+        long id,
+        long activityId,
+        int pageIndex,
+        int pageSize,
         CancellationToken cancellationToken)
     {
         var activity = await GetActivityAsync(id, activityId, cancellationToken).ConfigureAwait(false);
@@ -165,5 +224,47 @@ public class PersonService : IPersonService
             .ConfigureAwait(false);
 
         return nearbyPeople;
+    }
+
+    private static IEnumerable<InvalidField> GetIdInvalidFields(
+        long id,
+        [CallerArgumentExpression(nameof(id))] string parameterName = "")
+    {
+        var validationResult = new ValidationResult();
+        var modelName = nameof(PersonService);
+
+        if (id <= 0)
+        {
+            validationResult.Add(
+                parameterName,
+                modelName,
+                "Cannot be less than or equal to zero");
+        }
+
+        return validationResult.InvalidFields;
+    }
+
+    private static IEnumerable<InvalidField> GetPaginationInvalidFields(int pageIndex, int pageSize)
+    {
+        var validationResult = new ValidationResult();
+        var modelName = nameof(PersonService);
+
+        if (pageIndex < 0)
+        {
+            validationResult.Add(
+                nameof(pageIndex),
+                modelName,
+                "Cannot be less than zero");
+        }
+
+        if (pageSize <= 0)
+        {
+            validationResult.Add(
+                nameof(pageSize),
+                modelName,
+                "Cannot be less than or equal to zero");
+        }
+
+        return validationResult.InvalidFields;
     }
 }

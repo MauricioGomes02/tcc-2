@@ -1,6 +1,6 @@
 ﻿using Tcc2.Domain.Entities;
 
-namespace Tcc2.Domain.Pagination;
+namespace Tcc2.Domain.Models.Pagination;
 
 public class Paginated<T>
 {
@@ -10,10 +10,10 @@ public class Paginated<T>
     private readonly IReadOnlyCollection<T> _items;
 
     public Paginated(
-        int pageIndex, 
-        int pageSize, 
-        IReadOnlyCollection<T> items, 
-        int? totalItems = null, 
+        int pageIndex,
+        int pageSize,
+        IReadOnlyCollection<T> items,
+        int? totalItems = null,
         int? totalPages = null)
     {
         if (totalItems is null && totalPages is null)

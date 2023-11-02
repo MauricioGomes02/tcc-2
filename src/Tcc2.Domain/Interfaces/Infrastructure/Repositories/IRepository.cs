@@ -1,5 +1,5 @@
 ﻿using Tcc2.Domain.Entities;
-using Tcc2.Domain.Pagination;
+using Tcc2.Domain.Models.Pagination;
 
 namespace Tcc2.Domain.Interfaces.Infrastructure.Repositories;
 
