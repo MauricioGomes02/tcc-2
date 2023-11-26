@@ -288,7 +288,7 @@ public class PersonService : IPersonService
             Street = activity.Address.Street,
             Number = activity.Address.Number,
             PostalCode = activity.Address.PostalCode,
-            DaysOfWeek = activity.ActivityDay.Select(x => x.Day.Id).ToList(),
+            DaysOfWeek = activity.ActivityDay.Select(x => x.DayId).ToList(),
             Start = activity.Start,
             End = activity.End
         };
